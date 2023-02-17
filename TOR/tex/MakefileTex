@@ -1,0 +1,16 @@
+.PHONY : build move
+
+texReport : build move
+
+build : TOR.tex
+	pdflatex -shell-escape TOR.tex
+
+move : TOR.pdf
+	-mkdir ../pdf           
+	mv TOR.pdf ../pdf/ 
+	-mkdir ../out        
+	-mv *.aux *.log *.bbl *.blg *.dvi *.out *.toc *.bcf *.xml ../out/ 
+
+clear :
+	-rm -rf ../out/ ../pdf/TOR.pdf
+	-rm *.aux *.log *.bbl *.blg *.dvi *.out *.pdf *.bcf *.xml
