@@ -1,5 +1,5 @@
 class Lindex:
-    def __init__(self, keys: list[int], data: list[Any]):
+    def __init__(self, keys: list[int], data: list[any]):
         pass
 
     def _build_model(self):
