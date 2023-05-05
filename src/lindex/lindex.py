@@ -1,6 +1,6 @@
 import numpy as np
-
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 
 class Lindex:
@@ -23,8 +23,11 @@ class Lindex:
 
     def _build_model(self):
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Dense(128, activation="relu", input_dim=1),
-            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(64, activation="relu", input_dim=1),
+            tf.keras.layers.Dense(64, activation="relu"),
+            tf.keras.layers.Dense(64, activation="relu"),
+            tf.keras.layers.Dense(64, activation="relu"),
+            tf.keras.layers.Dense(64, activation="relu"),
             tf.keras.layers.Dense(1, activation="linear")
             ])
         model.compile(loss='mean_squared_error')
@@ -32,11 +35,23 @@ class Lindex:
         return model
 
     def train(self):
-        self.model.fit(self.keys, self.positions, epochs=500, verbose=0)
+        history = self.model.fit(self.keys, self.positions,
+                                 epochs=1000,
+                                 batch_size=100,
+                                 verbose=0)
+
+        plt.plot(history.history['loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train'], loc='upper left')
+        plt.show()
+
+        self.model.summary()
 
     def predict(self, key: int) -> int:
-        predicted_position = self.model.predict(np.array([[key]]))
-        print(predicted_position)
+        predicted_position = int(round(self.model.predict(np.array([[key]]), verbose=0)[0][0]))
+        return predicted_position
 
     def predict_range(self, low, hight) -> tuple[int, int]:
         pass
