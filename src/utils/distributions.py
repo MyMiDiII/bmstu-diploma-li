@@ -9,10 +9,10 @@ def graph(keys, positions, ppos=None, labels=None):
         labels = []
 
     plt.figure()
-    plt.plot(keys, positions, label="true")
+    plt.plot(keys, positions, 'o', label="true")
 
     for p, l in zip(ppos, labels):
-        plt.plot(keys, p, label=l)
+        plt.plot(keys, p, 'o', label=l)
 
     plt.legend()
     plt.xlabel("ключ")
