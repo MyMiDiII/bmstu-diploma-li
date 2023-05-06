@@ -4,10 +4,15 @@ import matplotlib.pyplot as plt
 
 from utils.distributions import graph
 
-class PredictionCallback(tf.keras.callbacks.Callback):
-    def on_epoch_begin(self, epoch, logs=None):
-        # Get the predicted values for the input data
-        print(logs)
+class LossDiffStop(tf.keras.callbacks.Callback):
+    def __init__(self, diff):
+        super().__init__()
+        self.diff = diff
+
+    def on_epoch_end(self, epoch, logs=None):
+        loss = logs['loss']
+        if loss < self.diff:
+            self.model.stop_training = True
 
 
 class Lindex:
@@ -46,7 +51,7 @@ class Lindex:
                                   bias_initializer=initializer),
             tf.keras.layers.Dense(1)
             ])
-        model.compile(optimizer=tf.keras.optimizers.SGD(0.001),
+        model.compile(optimizer=tf.keras.optimizers.SGD(0.01),
                       loss=tf.keras.losses.MeanSquaredError())
 
         return model
@@ -57,8 +62,8 @@ class Lindex:
                 self.keys,
                 self.positions,
                 batch_size=1,
-                callbacks=[PredictionCallback()],
-                epochs=100)
+                callbacks=[LossDiffStop(1e-4)],
+                epochs=60)
 
         print(history.history)
         plt.plot(history.history['loss'])
@@ -67,9 +72,9 @@ class Lindex:
         plt.legend(['train'])
         plt.show()
 
-    def predict(self, key: int) -> int:
+    def predict(self, keys):
         #pposition = int(round(self.model.predict(np.array([[key]]), verbose=0)[0][0]))
-        pposition = self.model.predict(np.array([key]), verbose=0)[0][0]
+        pposition = self.model.predict(np.array(keys), verbose=0)
         return pposition * self.N
 
     def predict_range(self, low, hight) -> tuple[int, int]:
@@ -79,15 +84,16 @@ class Lindex:
 if __name__ == "__main__":
     np.random.seed(0)
 
-    size = 100
-    keys = np.random.uniform(0, 1, size)
+    size = 1000
+    #keys = np.random.uniform(0, 1, size)
+    keys = np.random.normal(0.5, 0.16, size)
+    #keys = np.random.exponential(2, size)
     values = np.random.randint(0, 100, size)
 
     index = Lindex(keys, values)
     index.train()
 
     keys.sort()
-    ppos = [index.predict(key) for key in keys]
-    print(list(zip(keys, ppos)))
+    ppos = index.predict(keys)
 
     graph(keys, np.argsort(keys), [ppos], ["nn"])
