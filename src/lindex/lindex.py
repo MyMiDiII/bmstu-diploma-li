@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 
 from utils.distributions import graph
 
+
+def norm(x):
+    return (x - np.min(x)) / (np.max(x) - np.min(x))
+
+
 class LossDiffStop(tf.keras.callbacks.Callback):
     def __init__(self, diff):
         super().__init__()
@@ -21,6 +26,7 @@ class Lindex:
 
         self.N = len(keys)
         self.keys = np.array(keys)[sort_indexes]
+        self.keys = norm(self.keys)
         self.data = np.array(data)[sort_indexes]
         self.positions = np.arange(0, self.N) / self.N
 
@@ -63,7 +69,7 @@ class Lindex:
                 self.positions,
                 batch_size=1,
                 callbacks=[LossDiffStop(1e-4)],
-                epochs=60)
+                epochs=100)
 
         print(history.history)
         plt.plot(history.history['loss'])
@@ -73,6 +79,8 @@ class Lindex:
         plt.show()
 
     def predict(self, keys):
+        # !!! Изменить на метод, иначе неверное преобразование
+        keys = norm(keys)
         #pposition = int(round(self.model.predict(np.array([[key]]), verbose=0)[0][0]))
         pposition = self.model.predict(np.array(keys), verbose=0)
         return pposition * self.N
@@ -84,10 +92,11 @@ class Lindex:
 if __name__ == "__main__":
     np.random.seed(0)
 
-    size = 1000
-    #keys = np.random.uniform(0, 1, size)
-    keys = np.random.normal(0.5, 0.16, size)
+    size = 10
+    keys = np.random.uniform(0, 1000, size).astype(int)
+    #keys = np.random.normal(0.5, 0.16, size)
     #keys = np.random.exponential(2, size)
+
     values = np.random.randint(0, 100, size)
 
     index = Lindex(keys, values)
