@@ -3,16 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def graph(keys, positions, ppos=None):
+def graph(keys, positions, ppos=None, labels=None):
     if ppos is None:
         ppos = []
+        labels = []
 
     plt.figure()
-    plt.plot(keys, positions)
+    plt.plot(keys, positions, label="true")
 
-    for p in ppos:
-        plt.plot(keys, p)
+    for p, l in zip(ppos, labels):
+        plt.plot(keys, p, label=l)
 
+    plt.legend()
     plt.xlabel("ключ")
     plt.ylabel("позиция")
     plt.show()

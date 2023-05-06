@@ -12,13 +12,15 @@ if __name__ == "__main__":
     index.train()
     print(f"Train Time: {(process_time_ns() - start) / 10 ** 9}")
     print("PREDICT")
-    ppos = []
+    spos = []
+    npos = []
     for i, key in enumerate(uniform_keys):
         if i % 100 == 0:
             print(f"{i}/{len(uniform_keys)}: key = {key}")
-        pos = index.predict(key)
-        ppos.append(pos)
+        pos_s, pos_n = index.predict(key)
+        spos.append(pos_s)
+        npos.append(pos_n)
     print("STOP")
 
-    graph(uniform_keys, positions, [ppos])
+    graph(uniform_keys, positions, [spos, npos], ["sort", "non_sort"])
 
