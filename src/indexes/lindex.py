@@ -4,30 +4,6 @@ import matplotlib.pyplot as plt
 
 from time import process_time_ns
 
-from utils.distributions import graph
-#from utils.osm import sparce_ids
-from indexes.models.fcnn import FCNN
-from indexes.models.rbf import *
-
-
-
-def min_err(y_true, y_pred):
-    return y_pred - y_true
-
-def max_err(y_true, y_pred):
-    return y_true - y_pred
-
-
-class LossDiffStop(tf.keras.callbacks.Callback):
-    def __init__(self, diff):
-        super().__init__()
-        self.diff = diff
-
-    def on_epoch_end(self, epoch, logs=None):
-        loss = logs['loss']
-        if loss < self.diff:
-            self.model.stop_training = True
-
 
 class Lindex:
     def __init__(self, model: tf.keras.Model):
@@ -40,7 +16,7 @@ class Lindex:
         self.model.compile(optimizer=tf.keras.optimizers.SGD(1e-2),
                            loss=tf.keras.losses.MeanSquaredError(),
                            #loss=tf.keras.losses.MeanAbsoluteError(),
-                           metrics=["accuracy", min_err, max_err])
+                           metrics=[])
 
     def _normalize(self, keys):
         min_key = np.min(keys)
@@ -56,13 +32,6 @@ class Lindex:
         self.data = np.array(data)[sort_indexes]
         self.positions = np.arange(0, self.N) / self.N
 
-        # print(f"true pos\n {np.where(self.keys == keys[0])}")
-        # print(f"bkeys\n {keys}")
-        # print(f"bdata\n {data}")
-        # print(f"keys\n {self.keys}")
-        # print(f"data\n {self.data}")
-        # print(f"poss\n {self.positions}")
-
         self.history = self.model.fit(
                 self.keys,
                 self.positions,
@@ -77,21 +46,14 @@ class Lindex:
             return
 
         print(self.history.history)
-        #plt.plot(self.history.history['min_err'])
-        #plt.plot(self.history.history['max_err'])
-        plt.plot(self.history.history['accuracy'])
-        plt.ylabel('err')
-        plt.xlabel('epoch')
-        plt.legend(['train'])
-        plt.show()
 
     def predict(self, keys):
         if not self.trained:
             return None
+
         keys = self._normalize(keys)
-        #pposition = int(round(self.model.predict(np.array([[key]]), verbose=0)[0][0]))
         pposition = self.model.predict(np.array(keys), verbose=0)
-        return pposition * self.N
+        return np.around(pposition * self.N).astype(int)
 
     def predict_range(self, low, hight) -> tuple[int, int]:
         pass
