@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <sqlite3ext.h>
@@ -9,16 +10,16 @@
 SQLITE_EXTENSION_INIT1
 
 typedef struct lindex_vtab {
-  sqlite3_vtab base;
-  int what;
+    sqlite3_vtab base;
+    int number;
+    int keys[32];
+    int64_t values[32];
 } lindex_vtab;
 
 typedef struct lindex_cursor {
-  sqlite3_vtab_cursor base;
-  sqlite3_int64 iRowid;
-  lindex_vtab* vtab;
+    sqlite3_vtab_cursor base;
+    int array_index;
 } lindex_cursor;
-
 
 static int lindexCreate(sqlite3 *db,
                         void *pAux,
@@ -35,7 +36,6 @@ static int lindexCreate(sqlite3 *db,
 
     memset(vtab, 0, sizeof(*vtab));
     *ppVtab = &vtab->base;
-    vtab->what = 1321;
 
     char *sql_template = get_create_table_query_by_args(argc, argv);
 
@@ -57,6 +57,25 @@ static int lindexCreate(sqlite3 *db,
     sqlite3_free(vSqlQuery);
     sqlite3_free(rSqlQuery);
 
+    char* query = sqlite3_mprintf("SELECT ROWID, * FROM %s", rTableName);
+
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+
+    vtab->number = 0;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int64_t rowid = sqlite3_column_int64(stmt, 0);
+        vtab->values[vtab->number] = rowid;
+
+        int key = sqlite3_column_int(stmt, 1);
+        printf("%d\n", key);
+        vtab->keys[vtab->number] = key;
+
+        vtab->number++;
+    }
+
     return rc;
 }
 
@@ -68,7 +87,6 @@ static int lindexConnect(sqlite3 *db,
                          char **pzErr)
 {
     puts("CONNECT");
-    printf("what %d\n", ((lindex_vtab *)pAux)->what);
     for (int i = 0; i < argc; ++i)
     {
         printf("%d %s\n", i, argv[i]);
@@ -97,7 +115,7 @@ static int lindexOpen(sqlite3_vtab *p, sqlite3_vtab_cursor **ppCursor)
         return SQLITE_NOMEM;
 
     memset(pCur, 0, sizeof(*pCur));
-    pCur->vtab = (lindex_vtab*)p;
+    //pCur->vtab = (lindex_vtab*)p;
     *ppCursor = &pCur->base;
 
     return SQLITE_OK;
@@ -111,12 +129,11 @@ static int lindexClose(sqlite3_vtab_cursor *cur)
     return SQLITE_OK;
 }
 
-
 static int lindexNext(sqlite3_vtab_cursor *cur)
 {
     puts("NEXT");
     lindex_cursor *pCur = (lindex_cursor*)cur;
-    pCur->iRowid++;
+    pCur->array_index++;
     return SQLITE_OK;
 }
 
@@ -124,19 +141,23 @@ static int lindexColumn(sqlite3_vtab_cursor *cur,
                         sqlite3_context *ctx,
                         int i)
 {
-   puts("COLUMN");
-   lindex_cursor *pCur = (lindex_cursor*)cur;
+    puts("COLUMN");
+    printf("i %d\n", i);
+    lindex_cursor *pCur = (lindex_cursor*)cur;
+    lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
-   sqlite3_result_int(ctx, pCur->iRowid);
+    sqlite3_result_int(ctx, lTab->values[pCur->array_index]);
 
-   return SQLITE_OK;
+    return SQLITE_OK;
 }
 
 static int lindexRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid)
 {
     puts("ROWID");
     lindex_cursor *pCur = (lindex_cursor*)cur;
-    *pRowid = pCur->iRowid;
+    lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
+    *pRowid = lTab->values[pCur->array_index];
+
     return SQLITE_OK;
 }
 
@@ -144,7 +165,8 @@ static int lindexEof(sqlite3_vtab_cursor *cur)
 {
     puts("EOF");
     lindex_cursor *pCur = (lindex_cursor*)cur;
-    return pCur->iRowid >= 10;
+    lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
+    return pCur->array_index >= lTab->number;
 }
 
 static int lindexFilter(sqlite3_vtab_cursor *pVtabCursor, 
@@ -154,9 +176,21 @@ static int lindexFilter(sqlite3_vtab_cursor *pVtabCursor,
                         sqlite3_value **argv)
 {
     puts("FILTER");
-    lindex_cursor *pCur = (lindex_cursor *)pVtabCursor;
-    lindex_vtab *lTab = pCur->vtab;
-    printf("what %d\n", lTab->what);
+
+    printf("argc %d\n", argc);
+    for (int i = 0; i < argc; ++i)
+    {
+        printf("%d %s\n", i, (char *)argv[i]);
+    }
+    //lindex_cursor *pCur = (lindex_cursor *)pVtabCursor;
+    lindex_vtab *lTab = (lindex_vtab*)pVtabCursor->pVtab;
+
+    for (int i = 0; i < lTab->number; ++i)
+    {
+        puts("p3");
+        printf("key %d value %ld\n", lTab->keys[i], lTab->values[i]);
+    }
+
     return SQLITE_OK;
 }
 
