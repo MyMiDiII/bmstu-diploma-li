@@ -10,7 +10,7 @@ char *get_create_table_query_by_args(
         const char *const *argv)
 {
     sqlite3_str *createTableStmt = sqlite3_str_new(NULL);
-    sqlite3_str_appendall(createTableStmt, "CREATE TABLE %s%s(");
+    sqlite3_str_appendall(createTableStmt, "CREATE TABLE IF NOT EXISTS %s%s(");
 
     int i = 3;
     for (; i < argc - 1; ++i)

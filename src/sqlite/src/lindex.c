@@ -64,7 +64,6 @@ static int lindexConnect(sqlite3 *db,
                          sqlite3_vtab **ppVtab,
                          char **pzErr)
 {
-    puts("CONNECT");
     return lindexCreate(db, pAux, argc, argv, ppVtab, pzErr);
 }
 
