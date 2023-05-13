@@ -18,7 +18,7 @@ DEPS := $(patsubst $(SRCDIR)%.c,$(OUTDIR)%.d,$(ALL_SRCS))
 
 .PHONY : clean build
 
-build: mytable.so
+build: lindex.so
 
 %.so : $(OUTDIR)%.o
 	@mkdir -p $(@D)
