@@ -1,7 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <sqlite3ext.h>
+
+#include "queries.h"
 
 SQLITE_EXTENSION_INIT1
 
@@ -15,31 +18,41 @@ typedef struct lindex_cursor {
 } lindex_cursor;
 
 
-#define MYTABLE_A  0
-#define MYTABLE_B  1
+
 static int lindexCreate(sqlite3 *db,
                         void *pAux,
-                        int argc,
+                        const int argc,
                         const char *const *argv,
                         sqlite3_vtab **ppVtab,
-                        char **pzErr)
+                        char **errMsg)
 {
     puts("CREATE");
-    lindex_vtab *pNew;
-    int rc;
-    
-    rc = sqlite3_declare_vtab(db, "CREATE TABLE x(a,b)");
+    lindex_vtab *vtab = sqlite3_malloc(sizeof(lindex_vtab));
 
-    if (rc == SQLITE_OK)
-    {
-        pNew = sqlite3_malloc(sizeof(*pNew));
-        *ppVtab = (sqlite3_vtab*)pNew;
+    if (!vtab)
+        return SQLITE_NOMEM;
 
-        if (pNew == 0)
-            return SQLITE_NOMEM;
+    memset(vtab, 0, sizeof(*vtab));
+    *ppVtab = &vtab->base;
 
-        memset(pNew, 0, sizeof(*pNew));
-    }
+    char *sql_template = get_create_table_query_by_args(argc, argv);
+
+    const char *table_name = argv[2];
+
+    char *vtab_name = sqlite3_mprintf(sql_template, "", table_name);
+    char *rtab_name = sqlite3_mprintf(sql_template, "r", table_name);
+
+    puts(vtab_name);
+    puts(rtab_name);
+
+    int rc = sqlite3_declare_vtab(db, vtab_name);
+
+    if (!rc)
+        rc = sqlite3_exec(db, rtab_name, NULL, NULL, errMsg);
+
+    sqlite3_free(sql_template);
+    sqlite3_free(vtab_name);
+    sqlite3_free(rtab_name);
 
     return rc;
 }
@@ -59,7 +72,9 @@ static int lindexDisconnect(sqlite3_vtab *pVtab)
 {
     puts("DISCONNECT");
     lindex_vtab *p = (lindex_vtab*)pVtab;
+    puts("free");
     sqlite3_free(p);
+    puts("ok");
     return SQLITE_OK;
 }
 
@@ -102,15 +117,7 @@ static int lindexColumn(sqlite3_vtab_cursor *cur,
    puts("COLUMN");
    lindex_cursor *pCur = (lindex_cursor*)cur;
 
-   switch (i)
-   {
-     case MYTABLE_A:
-       sqlite3_result_int(ctx, 1000 + pCur->iRowid);
-       break;
-     default:
-       sqlite3_result_int(ctx, 2000 + pCur->iRowid);
-       break;
-   }
+   sqlite3_result_int(ctx, pCur->iRowid);
 
    return SQLITE_OK;
 }
@@ -146,8 +153,8 @@ static int lindexBestIndex(sqlite3_vtab *tab,
                            sqlite3_index_info *pIdxInfo)
 {
     puts("BEST");
-    pIdxInfo->estimatedCost = (double)10;
-    pIdxInfo->estimatedRows = 10;
+    //pIdxInfo->estimatedCost = (double)10;
+    //pIdxInfo->estimatedRows = 10;
     return SQLITE_OK;
 }
 
