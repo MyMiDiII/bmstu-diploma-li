@@ -10,13 +10,14 @@ SQLITE_EXTENSION_INIT1
 
 typedef struct lindex_vtab {
   sqlite3_vtab base;
+  int what;
 } lindex_vtab;
 
 typedef struct lindex_cursor {
   sqlite3_vtab_cursor base;
   sqlite3_int64 iRowid;
+  lindex_vtab* vtab;
 } lindex_cursor;
-
 
 
 static int lindexCreate(sqlite3 *db,
@@ -34,25 +35,27 @@ static int lindexCreate(sqlite3 *db,
 
     memset(vtab, 0, sizeof(*vtab));
     *ppVtab = &vtab->base;
+    vtab->what = 1321;
 
     char *sql_template = get_create_table_query_by_args(argc, argv);
 
-    const char *table_name = argv[2];
+    const char *vTableName = argv[2];
+    const char *rTableName = sqlite3_mprintf("r%s", vTableName);
 
-    char *vtab_name = sqlite3_mprintf(sql_template, "", table_name);
-    char *rtab_name = sqlite3_mprintf(sql_template, "r", table_name);
+    char *vSqlQuery = sqlite3_mprintf(sql_template, vTableName);
+    char *rSqlQuery = sqlite3_mprintf(sql_template, rTableName);
 
-    puts(vtab_name);
-    puts(rtab_name);
+    puts(vSqlQuery);
+    puts(rSqlQuery);
 
-    int rc = sqlite3_declare_vtab(db, vtab_name);
+    int rc = sqlite3_declare_vtab(db, vSqlQuery);
 
     if (!rc)
-        rc = sqlite3_exec(db, rtab_name, NULL, NULL, errMsg);
+        rc = sqlite3_exec(db, rSqlQuery, NULL, NULL, errMsg);
 
     sqlite3_free(sql_template);
-    sqlite3_free(vtab_name);
-    sqlite3_free(rtab_name);
+    sqlite3_free(vSqlQuery);
+    sqlite3_free(rSqlQuery);
 
     return rc;
 }
@@ -64,6 +67,13 @@ static int lindexConnect(sqlite3 *db,
                          sqlite3_vtab **ppVtab,
                          char **pzErr)
 {
+    puts("CONNECT");
+    printf("what %d\n", ((lindex_vtab *)pAux)->what);
+    for (int i = 0; i < argc; ++i)
+    {
+        printf("%d %s\n", i, argv[i]);
+    }
+
     return lindexCreate(db, pAux, argc, argv, ppVtab, pzErr);
 }
 
@@ -87,6 +97,7 @@ static int lindexOpen(sqlite3_vtab *p, sqlite3_vtab_cursor **ppCursor)
         return SQLITE_NOMEM;
 
     memset(pCur, 0, sizeof(*pCur));
+    pCur->vtab = (lindex_vtab*)p;
     *ppCursor = &pCur->base;
 
     return SQLITE_OK;
@@ -144,7 +155,8 @@ static int lindexFilter(sqlite3_vtab_cursor *pVtabCursor,
 {
     puts("FILTER");
     lindex_cursor *pCur = (lindex_cursor *)pVtabCursor;
-    pCur->iRowid = 1;
+    lindex_vtab *lTab = pCur->vtab;
+    printf("what %d\n", lTab->what);
     return SQLITE_OK;
 }
 
