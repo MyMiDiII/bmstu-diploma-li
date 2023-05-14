@@ -38,4 +38,4 @@ include $(DEPS)
 clean :
 	rm -fr $(OUTDIR)
 	rm -fr $(LIBSDIR)
-	rm *.so
+	rm *.so *.db

@@ -11,6 +11,7 @@ SQLITE_EXTENSION_INIT1
 
 typedef struct lindex_vtab {
     sqlite3_vtab base;
+    sqlite3_stmt *stmt;
     int number;
     int keys[32];
     int64_t values[32];
@@ -28,7 +29,7 @@ static int lindexCreate(sqlite3 *db,
                         sqlite3_vtab **ppVtab,
                         char **errMsg)
 {
-    puts("CREATE");
+    //puts("CREATE");
     lindex_vtab *vtab = sqlite3_malloc(sizeof(lindex_vtab));
 
     if (!vtab)
@@ -45,8 +46,8 @@ static int lindexCreate(sqlite3 *db,
     char *vSqlQuery = sqlite3_mprintf(sql_template, vTableName);
     char *rSqlQuery = sqlite3_mprintf(sql_template, rTableName);
 
-    puts(vSqlQuery);
-    puts(rSqlQuery);
+    //puts(vSqlQuery);
+    //puts(rSqlQuery);
 
     int rc = sqlite3_declare_vtab(db, vSqlQuery);
 
@@ -67,14 +68,18 @@ static int lindexCreate(sqlite3 *db,
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
         int64_t rowid = sqlite3_column_int64(stmt, 0);
+        //printf("rowid %ld\n", rowid);
         vtab->values[vtab->number] = rowid;
 
         int key = sqlite3_column_int(stmt, 1);
-        printf("%d\n", key);
+        //printf("key %d\n", key);
         vtab->keys[vtab->number] = key;
 
         vtab->number++;
     }
+
+    char* result_query = sqlite3_mprintf("SELECT * FROM %s WHERE ROWID = ?;", rTableName);
+    sqlite3_prepare_v2(db, result_query, -1, &vtab->stmt, NULL);
 
     return rc;
 }
@@ -86,10 +91,10 @@ static int lindexConnect(sqlite3 *db,
                          sqlite3_vtab **ppVtab,
                          char **pzErr)
 {
-    puts("CONNECT");
+    //puts("CONNECT");
     for (int i = 0; i < argc; ++i)
     {
-        printf("%d %s\n", i, argv[i]);
+        //printf("%d %s\n", i, argv[i]);
     }
 
     return lindexCreate(db, pAux, argc, argv, ppVtab, pzErr);
@@ -97,17 +102,17 @@ static int lindexConnect(sqlite3 *db,
 
 static int lindexDisconnect(sqlite3_vtab *pVtab)
 {
-    puts("DISCONNECT");
+    //puts("DISCONNECT";
     lindex_vtab *p = (lindex_vtab*)pVtab;
-    puts("free");
+    //puts("free");
     sqlite3_free(p);
-    puts("ok");
+    //puts("ok");
     return SQLITE_OK;
 }
 
 static int lindexOpen(sqlite3_vtab *p, sqlite3_vtab_cursor **ppCursor)
 {
-    puts("OPEN");
+    //puts("OPEN");
     lindex_cursor *pCur;
     pCur = sqlite3_malloc(sizeof(*pCur));
 
@@ -123,7 +128,7 @@ static int lindexOpen(sqlite3_vtab *p, sqlite3_vtab_cursor **ppCursor)
 
 static int lindexClose(sqlite3_vtab_cursor *cur)
 {
-    puts("CLOSE");
+    //puts("CLOSE");
     lindex_cursor *pCur = (lindex_cursor*)cur;
     sqlite3_free(pCur);
     return SQLITE_OK;
@@ -131,7 +136,7 @@ static int lindexClose(sqlite3_vtab_cursor *cur)
 
 static int lindexNext(sqlite3_vtab_cursor *cur)
 {
-    puts("NEXT");
+    //puts("NEXT");
     lindex_cursor *pCur = (lindex_cursor*)cur;
     pCur->array_index++;
     return SQLITE_OK;
@@ -141,19 +146,26 @@ static int lindexColumn(sqlite3_vtab_cursor *cur,
                         sqlite3_context *ctx,
                         int i)
 {
-    puts("COLUMN");
-    printf("i %d\n", i);
+    //puts("COLUMN");
+    //printf("i %d\n", i);
     lindex_cursor *pCur = (lindex_cursor*)cur;
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
-    sqlite3_result_int(ctx, lTab->values[pCur->array_index]);
+    //printf("stmt %p\n", (void *)lTab->stmt);
+    sqlite3_reset(lTab->stmt);
+	sqlite3_clear_bindings(lTab->stmt);
+    sqlite3_bind_int64(lTab->stmt, 1, lTab->values[pCur->array_index]);
+    sqlite3_step(lTab->stmt);
+    int columnValue = sqlite3_column_int(lTab->stmt, i);
+
+    sqlite3_result_int(ctx, columnValue);
 
     return SQLITE_OK;
 }
 
 static int lindexRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid)
 {
-    puts("ROWID");
+    //puts("ROWID");
     lindex_cursor *pCur = (lindex_cursor*)cur;
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
     *pRowid = lTab->values[pCur->array_index];
@@ -163,7 +175,7 @@ static int lindexRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid)
 
 static int lindexEof(sqlite3_vtab_cursor *cur)
 {
-    puts("EOF");
+    //puts("EOF");
     lindex_cursor *pCur = (lindex_cursor*)cur;
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
     return pCur->array_index >= lTab->number;
@@ -175,20 +187,20 @@ static int lindexFilter(sqlite3_vtab_cursor *pVtabCursor,
                         int argc,
                         sqlite3_value **argv)
 {
-    puts("FILTER");
+    //puts("FILTER");
 
-    printf("argc %d\n", argc);
+    //printf("argc %d\n", argc);
     for (int i = 0; i < argc; ++i)
     {
-        printf("%d %s\n", i, (char *)argv[i]);
+        //printf("%d %s\n", i, (char *)argv[i]);
     }
     //lindex_cursor *pCur = (lindex_cursor *)pVtabCursor;
     lindex_vtab *lTab = (lindex_vtab*)pVtabCursor->pVtab;
 
     for (int i = 0; i < lTab->number; ++i)
     {
-        puts("p3");
-        printf("key %d value %ld\n", lTab->keys[i], lTab->values[i]);
+        //puts("p3");
+        //printf("key %d value %ld\n", lTab->keys[i], lTab->values[i]);
     }
 
     return SQLITE_OK;
@@ -237,6 +249,6 @@ int sqlite3_lindex_init(sqlite3 *db,
 {
     SQLITE_EXTENSION_INIT2(pApi);
     int rc = sqlite3_create_module(db, "lindex", &lindexModule, 0);
-    printf("rc = %d\n", rc);
+    //printf("rc = %d\n", rc);
     return rc;
 }
