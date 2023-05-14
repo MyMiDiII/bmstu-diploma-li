@@ -65,17 +65,22 @@ static int lindexCreate(sqlite3 *db,
 
     vtab->number = 0;
 
+    int i = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
-        int64_t rowid = sqlite3_column_int64(stmt, 0);
-        //printf("rowid %ld\n", rowid);
-        vtab->values[vtab->number] = rowid;
+        if (i != 1)
+        {
+            int64_t rowid = sqlite3_column_int64(stmt, 0);
+            //printf("rowid %ld\n", rowid);
+            vtab->values[vtab->number] = rowid;
 
-        int key = sqlite3_column_int(stmt, 1);
-        //printf("key %d\n", key);
-        vtab->keys[vtab->number] = key;
+            int key = sqlite3_column_int(stmt, 1);
+            //printf("key %d\n", key);
+            vtab->keys[vtab->number] = key;
 
-        vtab->number++;
+            vtab->number++;
+        }
+        i++;
     }
 
     char* result_query = sqlite3_mprintf("SELECT * FROM %s WHERE ROWID = ?;", rTableName);
