@@ -7,8 +7,10 @@ vpath %.c $(SRCDIR)
 CC := gcc
 PATHFLAG := -I$(INCDIR)
 LIBSPATHFLAG := -L$(LIBSDIR)
-CFLAGS := -std=c99 $(PATHFLAG) -Wall -Werror -Wpedantic -fPIC
-SQLITE_LIB :=  -lsqlite3
+#CFLAGS := -std=c99 $(PATHFLAG) -Wall -Werror -Wpedantic -fPIC
+CFLAGS := -std=c99 $(PATHFLAG) -Wall -Wpedantic -fPIC
+ADD_LIBS :=  -lsqlite3 -lpython3.10
+PYTHON_PATH:= $(shell pkg-config --cflags --libs python3)
 
 SRCS := $(wildcard $(SRCDIR)*.c)
 OBGS := $(patsubst $(SRCDIR)%.c,$(OUTDIR)%.o,$(SRCS))
@@ -23,11 +25,11 @@ build: lindex.so
 
 %.so : $(OBGS)
 	@mkdir -p $(@D)
-	$(CC) $(SQLITE_LIB) -shared $^ -o $@
+	$(CC) $(ADD_LIBS) -shared $^ -o $@
 
 $(OUTDIR)%.o : %.c
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(PYTHON_PATH) -c $< -o $@
 
 $(OUTDIR)%.d : %.c
 	@mkdir -p $(@D)

@@ -5,6 +5,8 @@
 
 #include <sqlite3ext.h>
 
+#include <Python.h>
+
 #include "queries.h"
 
 SQLITE_EXTENSION_INIT1
@@ -29,6 +31,9 @@ static int lindexCreate(sqlite3 *db,
                         sqlite3_vtab **ppVtab,
                         char **errMsg)
 {
+    Py_Initialize();
+    PyRun_SimpleString("print('Hello, Python!')");
+    Py_Finalize();
     //puts("CREATE");
     lindex_vtab *vtab = sqlite3_malloc(sizeof(lindex_vtab));
 
