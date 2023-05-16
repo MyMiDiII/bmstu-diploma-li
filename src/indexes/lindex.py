@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 
 from time import process_time_ns
 
-
 class Lindex:
     def __init__(self, model: tf.keras.Model):
         self.model = model
         self._build_model()
 
         self.trained = False
+
 
     def _build_model(self):
         self.model.compile(optimizer=tf.keras.optimizers.SGD(1e-2),
@@ -57,6 +57,9 @@ class Lindex:
 
     def predict_range(self, low, hight) -> tuple[int, int]:
         pass
+
+    def success(self):
+        print("It Works!")
 
 
 if __name__ == "__main__":
