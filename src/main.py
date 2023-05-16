@@ -1,16 +1,13 @@
-from indexes.models.rbf import RBN, InitCentersRandom
-from indexes.models.fcnn import FCNN
-
-from indexes.lindex import Lindex
-
 from time import process_time_ns
 
 from prettytable import PrettyTable
 
-import tensorflow as tf
 import numpy as np
 
 from utils.distributions import graph
+from indexes.builder import LindexBuilder
+from indexes.models.rbf import RBN, InitCentersRandom
+from indexes.models.fcnn import FCNN
 
 config = {
         "keys":   "osm",
@@ -31,20 +28,6 @@ keys_variants = {
         "osm": sparce_ids
         }
 
-layer_neurons_num = 32
-b = 1 / np.sqrt(layer_neurons_num)
-a = -b
-
-rbf_initializer = InitCentersRandom(np.array([keys_variants[config["keys"]]]).T)
-rbf_initializer = None
-initializer = tf.keras.initializers.RandomUniform(a, b)
-
-models_variants = {
-        "rbf": RBN(rbf_initializer),
-        "fcnn3": FCNN([(layer_neurons_num, "relu", initializer)] * 3),
-        "fcnn2": FCNN([(layer_neurons_num, "relu", initializer)] * 2)
-        }
-
 def main():
     keys_distribution = config["keys"]
     models_names = config["models"]
@@ -57,9 +40,7 @@ def main():
     prediced_positions = dict()
 
     for model_name in models_names:
-        model = models_variants[model_name]
-
-        index = Lindex(model)
+        index = LindexBuilder(model_name).build()
 
         start = process_time_ns()
         index.train(keys, values)
