@@ -11,7 +11,7 @@ from indexes.models.fcnn import FCNN
 
 config = {
         "keys":   "osm",
-        "models": ["rbf", "fcnn3", "fcnn2"]
+        "models": ["fcnn2"]
         }
 
 size = 1000
@@ -22,7 +22,7 @@ else:
     sparce_ids = None
 
 keys_variants = {
-        "uniform": np.random.uniform(0, size, size).astype(int),
+        "uniform": np.random.uniform(0, size * 10, size).astype(int),
         "normal": np.random.normal(0.5, 0.16, size),
         "exp": np.random.exponential(2, size),
         "osm": sparce_ids
@@ -50,20 +50,16 @@ def main():
 
         keys.sort()
         start = process_time_ns()
-        ppos = index.predict(keys)
+        ppos = index.find(keys)
         predict_time = process_time_ns() - start
 
-        ppos = ppos.reshape(-1)
-        min_err = np.max(ppos - true_positions)
-        max_err = np.max(true_positions - ppos)
-        errors = (max(min_err, 0), max(max_err, 0))
-        span = sum(errors)
-        half_span = np.max(np.maximum(min_err, max_err))
-
-        results[model_name] = (training_time, predict_time, span, half_span)
+        max_abs_err = index.metrics.max_absolute_error
+        mean_abs_err = index.metrics.mean_absolute_error
+        results[model_name] = (training_time, predict_time, max_abs_err,
+                               mean_abs_err)
         prediced_positions[model_name] = ppos
 
-    results_table = PrettyTable(["model", "train", "predict", "span", "half_span"])
+    results_table = PrettyTable(["model", "train", "predict", "max_ae", "mean_ae"])
 
     for key, value in results.items():
         results_table.add_row([key] + list(value))

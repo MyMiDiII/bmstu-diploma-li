@@ -4,40 +4,47 @@ import matplotlib.pyplot as plt
 
 from time import process_time_ns
 
+from indexes.metrics import MetricsCallback
+
 class Lindex:
     def __init__(self, model: tf.keras.Model):
         self.model = model
         self._build_model()
 
         self.trained = False
+        print("build ok");
 
 
     def _build_model(self):
-        self.model.compile(optimizer=tf.keras.optimizers.SGD(1e-2),
-                           loss=tf.keras.losses.MeanSquaredError(),
-                           #loss=tf.keras.losses.MeanAbsoluteError(),
+        self.model.compile(optimizer=tf.keras.optimizers.SGD(1),
+                           #loss=tf.keras.losses.MeanSquaredError(),
+                           loss=tf.keras.losses.MeanAbsoluteError(),
                            metrics=[])
 
     def _normalize(self, keys):
-        min_key = np.min(keys)
-        max_key = np.max(keys)
+        min_key = np.min(self.keys)
+        max_key = np.max(self.keys)
         return (keys - min_key) / (max_key - min_key)
 
     def train(self, keys: list[int], data: list[any]):
+        print("train")
         sort_indexes = np.argsort(keys)
 
         self.N = len(keys)
         self.keys = np.array(keys)[sort_indexes]
-        self.keys = self._normalize(self.keys)
+        self.norm_keys = self._normalize(self.keys)
         self.data = np.array(data)[sort_indexes]
         self.positions = np.arange(0, self.N) / self.N
 
+        self.metrics = MetricsCallback(self.norm_keys, self.positions)
+
         self.history = self.model.fit(
-                self.keys,
+                self.norm_keys,
                 self.positions,
-                batch_size=1,
+                batch_size=128,
                 #callbacks=[LossDiffStop(1e-3)],
-                epochs=30)
+                callbacks=[self.metrics],
+                epochs=100)
 
         self.trained = True
 
@@ -47,139 +54,51 @@ class Lindex:
 
         print(self.history.history)
 
-    def predict(self, keys):
+    def _predict(self, keys):
         if not self.trained:
             return None
 
+        #print(keys)
         keys = self._normalize(keys)
         pposition = self.model.predict(np.array(keys), verbose=0)
-        return np.around(pposition * self.N).astype(int)
+        return np.around(pposition * self.N).astype(int).reshape(-1)
+
+    def _clarify(self, keys, positions):
+        def clarify_one(key, position):
+            position = max(min(position, self.N - 1), 0)
+
+            if self.keys[position] == key:
+                return position
+
+            low = max(position - self.metrics.mean_absolute_error, 0)
+            high = min(position + self.metrics.mean_absolute_error, self.N - 1)
+
+            if not (self.keys[low] < key < self.keys[high]):
+                low = max(position - self.metrics.max_absolute_error, 0)
+                high = min(position + self.metrics.max_absolute_error, self.N - 1)
+
+            while low <= high:
+                mid = (low + high) // 2
+                if self.keys[mid] == key:
+                    return mid
+                elif self.keys[mid] < key:
+                    low = mid + 1
+                else:
+                    high = mid - 1
+
+            return -1
+
+        vec_clarify = np.vectorize(clarify_one)
+        return vec_clarify(keys, positions)
+
+    def find(self, keys):
+        if not self.trained:
+            return None
+
+        positions = self._predict(keys)
+        return self._clarify(keys, positions)
+
 
     def predict_range(self, low, hight) -> tuple[int, int]:
         pass
 
-    def success(self):
-        print("It Works!")
-
-
-if __name__ == "__main__":
-    np.random.seed(0)
-
-    size = 100
-    keys = np.random.uniform(0, size, size).astype(int)
-    #keys = np.random.normal(0.5, 0.16, size)
-    #keys = np.random.exponential(2, size)
-    #keys = sparce_ids; size = len(keys)
-    #print(size)
-
-    values = np.random.randint(0, 100, size)
-
-    # ! RBF
-
-    #initializer = InitCentersRandom(np.array([keys]).T)
-    #index = Lindex(RBN(initializer))
-    index = Lindex(RBN())
-    start = process_time_ns()
-    index.train(keys, values)
-    rbf_time = process_time_ns() - start
-    index.plot_history()
-
-    keys.sort()
-    start = process_time_ns()
-    ppos = index.predict(keys)
-    rbf_ptime = process_time_ns() - start
-
-    positions = np.argsort(keys)
-    ppos = ppos.reshape(-1)
-    #print(ppos)
-    #print(positions)
-    errors = dict()
-    errors["rbf"] = (np.max(ppos - positions), np.max(positions - ppos))
-    I = dict()
-    I["rbf"] = sum(errors["rbf"])
-
-    graph(keys, positions, [ppos], ["nn"])
-
-    # ! 3 FCNN
-
-    n = 32
-    b = 1 / np.sqrt(n)
-    a = -b
-
-    initializer = tf.keras.initializers.RandomUniform(a, b)
-    index = Lindex(FCNN([(n, "relu", initializer)] * 3))
-    #index = Lindex(FCNN([(n, tf.keras.layers.LeakyReLU(), initializer)] * 3))
-
-    start = process_time_ns()
-    index.train(keys, values)
-    fcnn_time = process_time_ns() - start
-    index.plot_history()
-
-    keys.sort()
-    start = process_time_ns()
-    ppos = index.predict(keys)
-    fcnn_ptime = process_time_ns() - start
-
-    positions = np.argsort(keys)
-    ppos = ppos.reshape(-1)
-    #print(ppos)
-    #print(positions)
-    errors["fcnn3"] = (np.max(ppos - positions), np.max(positions - ppos))
-    I["fcnn3"] = sum(errors["fcnn3"])
-
-    graph(keys, positions, [ppos], ["nn"])
-
-    # ! FCNN 3 Leaky
-
-    initializer = tf.keras.initializers.RandomUniform(a, b)
-    index = Lindex(FCNN([(n, tf.keras.layers.LeakyReLU(), initializer)] * 3))
-
-    start = process_time_ns()
-    index.train(keys, values)
-    fcnn_l_time = process_time_ns() - start
-    index.plot_history()
-
-    keys.sort()
-    start = process_time_ns()
-    ppos = index.predict(keys)
-    fcnn_l_ptime = process_time_ns() - start
-
-    positions = np.argsort(keys)
-    ppos = ppos.reshape(-1)
-    #print(ppos)
-    #print(positions)
-    errors["fcnn3l"] = (np.max(ppos - positions), np.max(positions - ppos))
-    I["fcnn3l"] = sum(errors["fcnn3l"])
-
-    graph(keys, positions, [ppos], ["nn"])
-
-    # ! 2 FCNN
-
-    index = Lindex(FCNN([(n, "relu", initializer)] * 2))
-
-    start = process_time_ns()
-    index.train(keys, values)
-    fcnn2_time = process_time_ns() - start
-    index.plot_history()
-
-    keys.sort()
-    start = process_time_ns()
-    ppos = index.predict(keys)
-    fcnn2_ptime = process_time_ns() - start
-
-    positions = np.argsort(keys)
-    ppos = ppos.reshape(-1)
-    #print(ppos)
-    #print(positions)
-    errors["fcnn2"] = (np.max(ppos - positions), np.max(positions - ppos))
-    I["fcnn2"] = sum(errors["fcnn2"])
-
-    graph(keys, positions, [ppos], ["nn"])
-
-    print(errors)
-    for key, value in I.items():
-        print(key, value)
-    print("RBF  ", rbf_time, rbf_ptime)
-    print("FCNN3", fcnn_time, fcnn_ptime)
-    print("FCNN3 Leaky", fcnn_l_time, fcnn_l_ptime)
-    print("FCNN2", fcnn2_time, fcnn2_ptime)
