@@ -10,7 +10,7 @@ class MetricsCallback(Callback):
         self.max_absolute_error = 0.0
         self.mean_absolute_error = 0.0
 
-    def on_epoch_end(self, epoch, logs=None):
+    def on_train_end(self, logs=None):
         y_pred = self.model.predict(self.x, verbose=0).reshape(-1)
         print("pred", y_pred)
         print("true", self.y_true)

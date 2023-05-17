@@ -16,9 +16,9 @@ class Lindex:
 
 
     def _build_model(self):
-        self.model.compile(optimizer=tf.keras.optimizers.SGD(1),
-                           #loss=tf.keras.losses.MeanSquaredError(),
-                           loss=tf.keras.losses.MeanAbsoluteError(),
+        self.model.compile(optimizer=tf.keras.optimizers.SGD(1e-2),
+                           loss=tf.keras.losses.MeanSquaredError(),
+                           #loss=tf.keras.losses.MeanAbsoluteError(),
                            metrics=[])
 
     def _normalize(self, keys):
@@ -41,10 +41,10 @@ class Lindex:
         self.history = self.model.fit(
                 self.norm_keys,
                 self.positions,
-                batch_size=128,
+                batch_size=1,
                 #callbacks=[LossDiffStop(1e-3)],
                 callbacks=[self.metrics],
-                epochs=100)
+                epochs=30)
 
         self.trained = True
 

@@ -21,24 +21,11 @@ class LindexBuilder:
         match model_name:
             case "fcnn2":
                 print("f2")
-                self.model = FCNN(
-                        [
-                            (12, "relu", initializer),
-                            (8, "relu", initializer),
-                         ],
-                        "sigmoid")
-                        #[(layer_neurons_num, "relu", initializer)] * 2)
+                self.model = FCNN([(layer_neurons_num, "relu", initializer)] * 2)
 
             case "fcnn3":
                 print("f3")
-                self.model = FCNN(
-                        [
-                            (12, "relu", initializer),
-                            (8, "relu", initializer),
-                            (8, "relu", initializer),
-                         ],
-                        "sigmoid")
-                        #[(layer_neurons_num, "relu", initializer)] * 3)
+                self.model = FCNN([(layer_neurons_num, "relu", initializer)] * 3)
 
             case "rbf":
                 self.model = RBN(None)
