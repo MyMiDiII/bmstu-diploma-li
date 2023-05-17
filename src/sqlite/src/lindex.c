@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <Python.h>
+
 #include "vtable.h"
 #include "cursor.h"
 #include "sqlite_api.h"
@@ -44,5 +46,6 @@ int sqlite3_lindex_init(sqlite3 *db,
                         const sqlite3_api_routines *pApi)
 {
     SQLITE_EXTENSION_INIT2(pApi);
+    Py_Initialize();
     return sqlite3_create_module(db, "lindex", &lindexModule, 0);
 }

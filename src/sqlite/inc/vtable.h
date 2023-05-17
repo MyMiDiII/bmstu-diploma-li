@@ -4,12 +4,12 @@
 #include <stdint.h>
 #include <sqlite3ext.h>
 
+#include <Python.h>
+
 typedef struct lindex_vtab {
     sqlite3_vtab base;
     sqlite3_stmt *stmt;
-    int number;
-    int keys[32];
-    int64_t values[32];
+    PyObject *lindex;
 } lindex_vtab;
 
 int lindexCreate(sqlite3 *db,

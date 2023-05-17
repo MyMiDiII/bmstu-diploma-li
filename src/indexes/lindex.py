@@ -22,6 +22,9 @@ class Lindex:
                            metrics=[])
 
     def _normalize(self, keys):
+        if keys.size == 0:
+            return
+
         min_key = np.min(self.keys)
         max_key = np.max(self.keys)
         return (keys - min_key) / (max_key - min_key)
@@ -34,7 +37,7 @@ class Lindex:
         self.keys = np.array(keys)[sort_indexes]
         self.norm_keys = self._normalize(self.keys)
         self.data = np.array(data)[sort_indexes]
-        self.positions = np.arange(0, self.N) / self.N
+        self.positions = np.arange(0, self.N) / (self.N - 1)
 
         self.metrics = MetricsCallback(self.norm_keys, self.positions)
 
@@ -58,9 +61,9 @@ class Lindex:
         if not self.trained:
             return None
 
-        #print(keys)
+        print(keys)
         keys = self._normalize(keys)
-        pposition = self.model.predict(np.array(keys), verbose=0)
+        pposition = self.model.predict(keys, verbose=0)
         return np.around(pposition * self.N).astype(int).reshape(-1)
 
     def _clarify(self, keys, positions):
@@ -92,13 +95,20 @@ class Lindex:
         return vec_clarify(keys, positions)
 
     def find(self, keys):
-        if not self.trained:
+        print("called")
+        if not self.trained or not keys:
             return None
 
+        print("in keys", keys)
+        keys = np.array(keys)
         positions = self._predict(keys)
-        return self._clarify(keys, positions)
-
+        positions = self._clarify(keys, positions)
+        print("res", self.data[positions])
+        return self.data[positions]
 
     def predict_range(self, low, hight) -> tuple[int, int]:
         pass
+
+    def is_trained(self):
+        return self.is_trained
 

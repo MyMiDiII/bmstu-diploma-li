@@ -11,9 +11,6 @@ int lindexCreate(sqlite3 *db,
                  sqlite3_vtab **ppVtab,
                  char **errMsg)
 {
-    Py_Initialize();
-    PyRun_SimpleString("print('Hello, Python!')");
-    Py_Finalize();
     //puts("CREATE");
     lindex_vtab *vtab = sqlite3_malloc(sizeof(lindex_vtab));
 
@@ -48,28 +45,63 @@ int lindexCreate(sqlite3 *db,
     sqlite3_stmt* stmt;
     rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
-    vtab->number = 0;
+    puts("ok");
+    PyObject* builderModule = PyImport_ImportModule("indexes.builder");
+    printf("%p\n", (void *)builderModule);
+
+    PyObject* builderClassName= PyObject_GetAttrString(builderModule, "LindexBuilder");
+    printf("%p\n", (void *)builderClassName);
+    PyObject* modelName = PyTuple_Pack(1, PyUnicode_FromString("fcnn2"));
+    PyObject* builder = PyObject_CallObject(builderClassName, modelName);
+    printf("%p\n", (void *)builder);
+
+    PyObject* lindex = PyObject_CallMethod(builder, "build", NULL);
+    PyObject* keys = PyList_New(0);
+    PyObject* rows = PyList_New(0);
 
     int i = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
-        if (i != 1)
-        {
-            int64_t rowid = sqlite3_column_int64(stmt, 0);
-            //printf("rowid %ld\n", rowid);
-            vtab->values[vtab->number] = rowid;
+        int key = sqlite3_column_int(stmt, 1);
+        int64_t rowid = sqlite3_column_int64(stmt, 0);
 
-            int key = sqlite3_column_int(stmt, 1);
-            //printf("key %d\n", key);
-            vtab->keys[vtab->number] = key;
+        PyList_Append(keys, PyLong_FromLong(key));
+        PyList_Append(rows, PyLong_FromLong(rowid));
 
-            vtab->number++;
-        }
         i++;
     }
+    puts("ok");
+
+    if (i)
+    {
+        puts("train");
+        PyObject* train = PyUnicode_FromString("train");
+
+        PyObject* check = PyObject_CallMethodObjArgs(lindex, train, keys, rows, NULL);
+
+        if (!check)
+        {
+            PyErr_Print();
+            PyErr_Clear();
+        }
+
+        Py_DECREF(check);
+        Py_DECREF(train);
+    }
+
+    vtab->lindex = lindex;
+
+    Py_DECREF(keys);
+    Py_DECREF(rows);
+    Py_DECREF(builder);
+    Py_DECREF(modelName);
+    Py_DECREF(builderClassName);
+    Py_DECREF(builderModule);
+    sqlite3_finalize(stmt);
 
     char* result_query = sqlite3_mprintf("SELECT * FROM %s WHERE ROWID = ?;", rTableName);
     sqlite3_prepare_v2(db, result_query, -1, &vtab->stmt, NULL);
+    //sqlite3_finalize(vtab->stmt);
 
     return rc;
 }
@@ -92,7 +124,7 @@ int lindexConnect(sqlite3 *db,
 
 int lindexDisconnect(sqlite3_vtab *pVtab)
 {
-    //puts("DISCONNECT";
+    puts("DISCONNECT");
     lindex_vtab *p = (lindex_vtab*)pVtab;
     //puts("free");
     sqlite3_free(p);
