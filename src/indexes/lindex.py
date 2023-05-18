@@ -12,7 +12,7 @@ class Lindex:
         self._build_model()
 
         self.trained = False
-        print("build ok");
+        #print("build ok");
 
 
     def _build_model(self):
@@ -30,7 +30,7 @@ class Lindex:
         return (keys - min_key) / (max_key - min_key)
 
     def train(self, keys: list[int], data: list[any]):
-        print("train")
+        #print("train")
         sort_indexes = np.argsort(keys)
 
         self.N = len(keys)
@@ -55,13 +55,13 @@ class Lindex:
         if not self.trained:
             return
 
-        print(self.history.history)
+        #print(self.history.history)
 
     def _predict(self, keys):
         if not self.trained:
             return None
 
-        print(keys)
+        #print(keys)
         keys = self._normalize(keys)
         pposition = self.model.predict(keys, verbose=0)
         return np.around(pposition * self.N).astype(int).reshape(-1)
@@ -95,15 +95,15 @@ class Lindex:
         return vec_clarify(keys, positions)
 
     def find(self, keys):
-        print("called")
+        #print("called")
         if not self.trained or not keys:
             return None
 
-        print("in keys", keys)
+        #print("in keys", keys)
         keys = np.array(keys)
         positions = self._predict(keys)
         positions = self._clarify(keys, positions)
-        print("res", self.data[positions])
+        #print("res", self.data[positions])
         return self.data[positions]
 
     def predict_range(self, low, hight) -> tuple[int, int]:
