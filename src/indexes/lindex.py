@@ -7,7 +7,7 @@ from time import process_time_ns
 
 from indexes.metrics import MetricsCallback
 
-from timer import timer
+#from timer import timer
 
 from utils.keras_memory_usage import keras_model_memory_usage_in_bytes
 
@@ -54,7 +54,7 @@ class Lindex:
                 callbacks=[self.metrics],
                 epochs=30)
 
-    @timer
+    #@timer
     def train(self, keys: list[int], data: list[any]):
         self._init_for_train(keys, data)
 
@@ -107,7 +107,7 @@ class Lindex:
         vec_clarify = np.vectorize(clarify_one)
         return vec_clarify(keys, positions)
 
-    @timer
+    #@timer
     def find(self, keys):
         #print("called")
         if not self.trained or not keys:

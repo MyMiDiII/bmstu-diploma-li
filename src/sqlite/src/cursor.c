@@ -16,7 +16,7 @@ typedef struct lindex_cursor {
 
 int lindexOpen(sqlite3_vtab *p, sqlite3_vtab_cursor **ppCursor)
 {
-    puts("OPEN");
+    //puts("OPEN");
     lindex_cursor *pCur;
     pCur = sqlite3_malloc(sizeof(*pCur));
 
@@ -31,7 +31,7 @@ int lindexOpen(sqlite3_vtab *p, sqlite3_vtab_cursor **ppCursor)
 
 int lindexClose(sqlite3_vtab_cursor *cur)
 {
-    puts("CLOSE");
+    //puts("CLOSE");
     lindex_cursor *pCur = (lindex_cursor*)cur;
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
@@ -45,7 +45,7 @@ int lindexClose(sqlite3_vtab_cursor *cur)
 
 int lindexNext(sqlite3_vtab_cursor *cur)
 {
-    puts("NEXT");
+    //puts("NEXT");
     lindex_cursor *pCur = (lindex_cursor*)cur;
 
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
@@ -53,7 +53,7 @@ int lindexNext(sqlite3_vtab_cursor *cur)
     sqlite3_reset(lTab->stmt);
     sqlite3_clear_bindings(lTab->stmt);
     int64_t rowid = *(int64_t *)PyArray_ITER_DATA(pCur->iter);
-    printf("rowid %ld\n", rowid);
+    //printf("rowid %ld\n", rowid);
     sqlite3_bind_int64(lTab->stmt, 1, rowid);
     sqlite3_step(lTab->stmt);
 
@@ -66,24 +66,24 @@ int lindexColumn(sqlite3_vtab_cursor *cur,
                  sqlite3_context *ctx,
                  int i)
 {
-    puts("COLUMN");
-    printf("i %d\n", i);
+    //puts("COLUMN");
+    //printf("i %d\n", i);
     //lindex_cursor *pCur = (lindex_cursor*)cur;
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
-    //printf("stmt %p\n", (void *)lTab->stmt);
+    ////printf("stmt %p\n", (void *)lTab->stmt);
     int columnValue = sqlite3_column_int(lTab->stmt, i);
-    //printf("colVal %d\n", columnValue);
+    ////printf("colVal %d\n", columnValue);
 
     sqlite3_result_int(ctx, columnValue);
 
-    puts("it ok");
+    //puts("it ok");
     return SQLITE_OK;
 }
 
 int lindexRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid)
 {
-    puts("ROWID");
+    //puts("ROWID");
     lindex_cursor *pCur = (lindex_cursor*)cur;
     //lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
     *pRowid = *(int64_t *)PyArray_ITER_DATA(pCur->iter);
@@ -93,7 +93,7 @@ int lindexRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid)
 
 int lindexEof(sqlite3_vtab_cursor *cur)
 {
-    puts("EOF");
+    //puts("EOF");
 
     lindex_cursor *pCur = (lindex_cursor*)cur;
 
@@ -106,39 +106,44 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
                  int argc,
                  sqlite3_value **argv)
 {
-    puts("FILTER");
+    //puts("FILTER");
     import_array()
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
     PyObject* keys = PyList_New(0);
 
-    printf("argc %d\n", argc);
+    //printf("argc %d\n", argc);
     for (int i = 0; i < argc; ++i)
     {
-        printf("val %d\n", sqlite3_value_int(argv[i]));
+        //printf("val %d\n", sqlite3_value_int(argv[i]));
         PyList_Append(keys, PyLong_FromLong(sqlite3_value_int(argv[i])));
     }
 
     PyObject* find = PyUnicode_FromString("find");
-    //printf("keys_size %ld\n", PyList_Size(keys));
-    //printf("find%p\n", find);
+    ////printf("keys_size %ld\n", PyList_Size(keys));
+    ////printf("find%p\n", find);
 
     PyObject* rowids = PyObject_CallMethodObjArgs(lTab->lindex, find, keys, NULL);
-    printf("%d\n", PyArray_Check(rowids));
+    if (!rowids)
+    {
+        PyErr_Print();
+        PyErr_Clear();
+    }
+    //printf("%d\n", PyArray_Check(rowids));
     npy_intp size = PyArray_SIZE(rowids);
-    printf("%d\n", size);
-    puts("are get");
+    //printf("%d\n", size);
+    //puts("are get");
     PyArrayIterObject *iter = (PyArrayIterObject *)PyArray_IterNew(rowids);
-    puts("iter");
+    //puts("iter");
 
 
     lindex_cursor *pCur = (lindex_cursor*)cur;
     pCur->rowids = rowids;
     pCur->iter = iter;
-    puts("save");
+    //puts("save");
 
     int64_t rowid = *(int64_t *)PyArray_ITER_DATA(pCur->iter);
-    printf("rowid %ld\n", rowid);
+    //printf("rowid %ld\n", rowid);
     sqlite3_bind_int64(lTab->stmt, 1, rowid);
     sqlite3_step(lTab->stmt);
 
@@ -148,7 +153,7 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
 int lindexBestIndex(sqlite3_vtab *tab,
                     sqlite3_index_info *pIndexInfo)
 {
-    puts("BEST");
+    //puts("BEST");
 
     if (pIndexInfo->nConstraint > 0)
     {

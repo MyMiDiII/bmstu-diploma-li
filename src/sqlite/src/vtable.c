@@ -47,13 +47,13 @@ int lindexCreate(sqlite3 *db,
 
     puts("ok");
     PyObject* builderModule = PyImport_ImportModule("indexes.builder");
-    printf("%p\n", (void *)builderModule);
+    //printf("%p\n", (void *)builderModule);
 
     PyObject* builderClassName= PyObject_GetAttrString(builderModule, "LindexBuilder");
-    printf("%p\n", (void *)builderClassName);
+    //printf("%p\n", (void *)builderClassName);
     PyObject* modelName = PyTuple_Pack(1, PyUnicode_FromString("fcnn2"));
     PyObject* builder = PyObject_CallObject(builderClassName, modelName);
-    printf("%p\n", (void *)builder);
+    //printf("%p\n", (void *)builder);
 
     PyObject* lindex = PyObject_CallMethod(builder, "build", NULL);
     PyObject* keys = PyList_New(0);
@@ -116,7 +116,7 @@ int lindexConnect(sqlite3 *db,
     //puts("CONNECT");
     for (int i = 0; i < argc; ++i)
     {
-        //printf("%d %s\n", i, argv[i]);
+        ////printf("%d %s\n", i, argv[i]);
     }
 
     return lindexCreate(db, pAux, argc, argv, ppVtab, pzErr);
