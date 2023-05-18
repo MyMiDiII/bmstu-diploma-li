@@ -4,7 +4,7 @@ from csv_writer import choose_elements
 
 def generate_normal():
     size = 1000000
-    ids = np.random.normal(size / 2, size / 6, size).astype(int)
+    ids = np.random.normal(size / 2, size / 10, size).astype(int)
 
     choose_elements("normal", ids)
 

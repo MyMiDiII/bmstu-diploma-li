@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -6,6 +7,10 @@ from time import process_time_ns
 
 from indexes.metrics import MetricsCallback
 
+from timer import timer
+
+from utils.keras_memory_usage import keras_model_memory_usage_in_bytes
+
 class Lindex:
     def __init__(self, model: tf.keras.Model):
         self.model = model
@@ -13,6 +18,8 @@ class Lindex:
 
         self.trained = False
         #print("build ok");
+
+        self.statistics = {}
 
 
     def _build_model(self):
@@ -29,8 +36,7 @@ class Lindex:
         max_key = np.max(self.keys)
         return (keys - min_key) / (max_key - min_key)
 
-    def train(self, keys: list[int], data: list[any]):
-        #print("train")
+    def _init_for_train(self, keys: list[int], data: list[any]):
         sort_indexes = np.argsort(keys)
 
         self.N = len(keys)
@@ -39,8 +45,7 @@ class Lindex:
         self.data = np.array(data)[sort_indexes]
         self.positions = np.arange(0, self.N) / (self.N - 1)
 
-        self.metrics = MetricsCallback(self.norm_keys, self.positions)
-
+    def _true_train(self):
         self.history = self.model.fit(
                 self.norm_keys,
                 self.positions,
@@ -48,6 +53,14 @@ class Lindex:
                 #callbacks=[LossDiffStop(1e-3)],
                 callbacks=[self.metrics],
                 epochs=30)
+
+    @timer
+    def train(self, keys: list[int], data: list[any]):
+        self._init_for_train(keys, data)
+
+        self.metrics = MetricsCallback(self.norm_keys, self.positions)
+
+        self._true_train()
 
         self.trained = True
 
@@ -94,6 +107,7 @@ class Lindex:
         vec_clarify = np.vectorize(clarify_one)
         return vec_clarify(keys, positions)
 
+    @timer
     def find(self, keys):
         #print("called")
         if not self.trained or not keys:
@@ -111,4 +125,22 @@ class Lindex:
 
     def is_trained(self):
         return self.is_trained
+
+    def my_size(self):
+        size = 0
+        attributes = vars(self)
+
+        for attr_name, attr_value in attributes.items():
+            if attr_name == "model":
+                size += keras_model_memory_usage_in_bytes(attr_value, batch_size=32)
+            if attr_name not in ["statistics", "metrics", "history"]:
+                if isinstance(attr_value, np.ndarray):
+                    size += attr_value.nbytes
+                else:
+                    size += sys.getsizeof(attr_value)
+
+        return size
+
+    def mae(self):
+        return self.metrics.mean_absolute_error;
 
