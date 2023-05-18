@@ -11,7 +11,7 @@ LIBSPATHFLAG := -L$(LIBSDIR)
 CFLAGS := -std=c99 $(PATHFLAG) -fPIC #-Wall -Wpedantic
 ADD_LIBS :=  -lsqlite3 -lpython3.10
 PYTHON_PATH:= $(shell pkg-config --cflags --libs python3)
-NUMPY_PATH := -I/home/mymidi/.local/lib/python3.10/site-packages/numpy/core/include
+NUMPY_PATH := -I$(shell pip show numpy | grep -oP "(?<=Location: ).*" | awk '{$$1=$$1};1')/numpy/core/include
 
 SRCS := $(wildcard $(SRCDIR)*.c)
 OBGS := $(patsubst $(SRCDIR)%.c,$(OUTDIR)%.o,$(SRCS))
