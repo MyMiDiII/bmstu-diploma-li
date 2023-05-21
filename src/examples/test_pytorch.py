@@ -65,3 +65,8 @@ print("PyTorch training time:", training_time, "seconds")
 # After training, you can use the trained model for predictions
 # by passing new input data through the model.
 
+start_time = time.time()
+with torch.no_grad():
+    output = model(input_tensor)
+training_time = time.time() - start_time
+print("PyTorch training time:", training_time, "seconds")

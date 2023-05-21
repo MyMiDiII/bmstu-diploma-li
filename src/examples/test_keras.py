@@ -39,3 +39,11 @@ model.fit(keys, positions, epochs=30, batch_size=1, verbose=0)
 training_time = time.time() - start_time
 print("Keras training time:", training_time, "seconds")
 
+start_time = time.time()
+
+# Train the model
+model.predict(keys, verbose=0)
+
+# Calculate the training time
+training_time = time.time() - start_time
+print("Keras training time:", training_time, "seconds")
