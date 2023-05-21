@@ -106,7 +106,7 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
                  int argc,
                  sqlite3_value **argv)
 {
-    //puts("FILTER");
+    puts("FILTER");
     import_array()
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
@@ -120,8 +120,8 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
     }
 
     PyObject* find = PyUnicode_FromString("find");
-    ////printf("keys_size %ld\n", PyList_Size(keys));
-    ////printf("find%p\n", find);
+    printf("keys_size %ld\n", PyList_Size(keys));
+    printf("find%p\n", find);
 
     PyObject* rowids = PyObject_CallMethodObjArgs(lTab->lindex, find, keys, NULL);
     if (!rowids)
@@ -129,21 +129,21 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
         PyErr_Print();
         PyErr_Clear();
     }
-    //printf("%d\n", PyArray_Check(rowids));
+    printf("%d\n", PyArray_Check(rowids));
     npy_intp size = PyArray_SIZE(rowids);
-    //printf("%d\n", size);
-    //puts("are get");
+    printf("%d\n", size);
+    puts("are get");
     PyArrayIterObject *iter = (PyArrayIterObject *)PyArray_IterNew(rowids);
-    //puts("iter");
+    puts("iter");
 
 
     lindex_cursor *pCur = (lindex_cursor*)cur;
     pCur->rowids = rowids;
     pCur->iter = iter;
-    //puts("save");
+    puts("save");
 
     int64_t rowid = *(int64_t *)PyArray_ITER_DATA(pCur->iter);
-    //printf("rowid %ld\n", rowid);
+    printf("rowid %ld\n", rowid);
     sqlite3_bind_int64(lTab->stmt, 1, rowid);
     sqlite3_step(lTab->stmt);
 

@@ -63,8 +63,9 @@ class Lindex:
                 callbacks=[LossDiffStop(1e-5), self.metrics],
                 epochs=30)
 
-    @timer
+    #@timer
     def train(self, keys: list[int], data: list[any]):
+        print("CALLED")
         self._init_for_train(keys, data)
 
         self.metrics = MetricsCallback(self.norm_keys, self.positions)
@@ -117,7 +118,7 @@ class Lindex:
         vec_clarify = np.vectorize(clarify_one)
         return vec_clarify(keys, positions)
 
-    @timer
+    #@timer
     def find(self, keys):
         #print("called")
         if not self.trained or not keys:
