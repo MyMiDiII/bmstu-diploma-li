@@ -7,9 +7,19 @@ from time import process_time_ns
 
 from indexes.metrics import MetricsCallback
 
-#from timer import timer
+from timer import timer
 
 from utils.keras_memory_usage import keras_model_memory_usage_in_bytes
+
+class LossDiffStop(tf.keras.callbacks.Callback):
+    def __init__(self, diff):
+        super().__init__()
+        self.diff = diff
+
+    def on_epoch_end(self, epoch, logs=None):
+        loss = logs['loss']
+        if loss < self.diff:
+            self.model.stop_training = True
 
 class Lindex:
     def __init__(self, model: tf.keras.Model):
@@ -50,11 +60,10 @@ class Lindex:
                 self.norm_keys,
                 self.positions,
                 batch_size=1,
-                #callbacks=[LossDiffStop(1e-3)],
-                callbacks=[self.metrics],
+                callbacks=[LossDiffStop(1e-5), self.metrics],
                 epochs=30)
 
-    #@timer
+    @timer
     def train(self, keys: list[int], data: list[any]):
         self._init_for_train(keys, data)
 
@@ -76,7 +85,8 @@ class Lindex:
 
         #print(keys)
         keys = self._normalize(keys)
-        pposition = self.model.predict(keys, verbose=0)
+        #pposition = self.model.predict(keys, verbose=0)
+        pposition = self.model(keys)
         return np.around(pposition * self.N).astype(int).reshape(-1)
 
     def _clarify(self, keys, positions):
@@ -107,7 +117,7 @@ class Lindex:
         vec_clarify = np.vectorize(clarify_one)
         return vec_clarify(keys, positions)
 
-    #@timer
+    @timer
     def find(self, keys):
         #print("called")
         if not self.trained or not keys:

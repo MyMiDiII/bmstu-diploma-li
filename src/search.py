@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 from utils.graph import graph
 from indexes.builder import LindexBuilder
 
-distributions = ["uniform"]
-distributions = ["osm"]
-distributions = ["normal"]
+
+distributions = ["normal", "osm"]
 models = ["fcnn2", "fcnn3", "rbf"]
 
 
@@ -38,10 +37,15 @@ def load_keys(filename):
     return keys
 
 def research():
+    sizes = [10 ** i for i in range(1, 6)]
+
     for distribution in distributions:
         print(f"DIST = {distribution}")
+        sizes_keys = []
 
-        sizes = [100 * i for i in range(1, 10)]
+        for size in sizes:
+            sizes_keys.append(load_keys(f"data/csv/{distribution}/{distribution}{size}.csv"))
+
         build_times = []
         find_times = []
         models_sizes = []
@@ -53,29 +57,28 @@ def research():
             model_sizes = []
             model_mae = []
 
-            for size in sizes:
-                print(f"SIZE = {size}")
-                keys = load_keys(f"data/csv/{distribution}/{distribution}{size}.csv")
+            for keys in sizes_keys:
+                print(f"SIZE = {len(keys)}")
 
                 model_build_time, model_find_time, size, mae  = get_stats(model, keys)
 
                 model_build_times.append(model_build_time)
                 model_find_times.append(model_find_time)
                 model_sizes.append(size)
-                model_mae.append(mae)
+                model_mae.append((mae / len(keys)) * 100)
 
             build_times.append(model_build_times)
             find_times.append(model_find_times)
             models_sizes.append(model_sizes)
             models_mae.append(model_mae)
 
-        print(build_times)
         fig = plt.figure()
         graph((2, 2, 1), sizes, build_times, models)
         graph((2, 2, 2), sizes, find_times, models)
         graph((2, 2, 3), sizes, models_sizes, models)
         graph((2, 2, 4), sizes, models_mae, models)
         plt.show()
+
 
 if __name__ == "__main__":
     research()

@@ -10,7 +10,7 @@ from indexes.models.rbf import RBN, InitCentersRandom
 from indexes.models.fcnn import FCNN
 
 config = {
-        "keys":   "osm",
+        "keys":   "normal",
         "models": ["fcnn2"]
         }
 
