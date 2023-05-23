@@ -7,7 +7,7 @@ def graph(subplot, x, ys, labels=None, title=None, axis_names=(None, None)):
     if not legend_flag:
         labels = len(ys) * [None]
 
-    ax = plt.subplot(subplot)
+    ax = plt.subplot(*subplot)
     ax.set_title(title)
     ax.set_xlabel(axis_names[0])
     ax.set_ylabel(axis_names[1])

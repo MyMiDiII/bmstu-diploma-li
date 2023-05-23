@@ -8,9 +8,6 @@ import matplotlib.gridspec as gridspec
 from utils.graph import graph
 from utils.csv_reader import load_keys
 
-"""
-"""
-
 def main():
     uniform_keys = np.sort(load_keys("data/csv/uniform/uniform100000.csv"))
     normal_keys  = np.sort(load_keys("data/csv/normal/normal100000.csv"))
@@ -30,7 +27,7 @@ def main():
 
     fig = plt.figure()
     gs = gridspec.GridSpec(2, 4)
-    positions = [gs[0, :2], gs[0, 2:], gs[1, 1:3]]
+    positions = [[gs[0, :2]], [gs[0, 2:]], [gs[1, 1:3]]]
 
     for i, (distribution, keys) in enumerate(distribution_keys.items()):
         keys = (keys - keys[0]) / (keys[-1] - keys[0])
