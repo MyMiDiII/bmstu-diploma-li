@@ -1,35 +1,50 @@
 import numpy as np
 
+import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 
-def graph(keys, positions, ppos=None, labels=None):
-    if ppos is None:
-        ppos = []
-        labels = []
+from utils.graph import graph
+from utils.csv_reader import load_keys
 
-    plt.figure()
-    plt.plot(keys, positions, 'o', label="true")
+"""
+"""
 
-    for p, l in zip(ppos, labels):
-        plt.plot(keys, p, 'o', label=l)
+def main():
+    uniform_keys = np.sort(load_keys("data/csv/uniform/uniform100000.csv"))
+    normal_keys  = np.sort(load_keys("data/csv/normal/normal100000.csv"))
+    osm_keys     = np.sort(load_keys("data/csv/osm/osm100000.csv"))
 
-    plt.legend()
-    plt.xlabel("ключ")
-    plt.ylabel("позиция")
+    distribution_keys = {
+            "Равномерное распределение" : uniform_keys,
+            "Нормальное распределение"  : normal_keys,
+            "OpenStreetMaps"            : osm_keys
+            }
+
+    font = {'family' : 'Liberation Serif',
+            'weight' : 'normal',
+            'size'   : 20}
+
+    matplotlib.rc('font', **font)
+
+    fig = plt.figure()
+    gs = gridspec.GridSpec(2, 4)
+    positions = [gs[0, :2], gs[0, 2:], gs[1, 1:3]]
+
+    for i, (distribution, keys) in enumerate(distribution_keys.items()):
+        keys = (keys - keys[0]) / (keys[-1] - keys[0])
+        cdf = np.arange(0, len(keys)) / (len(keys) - 1)
+        graph(positions[i],
+              keys,
+              [cdf],
+              title=distribution,
+              axis_names=("нормализованный ключ key", "F(key)"))
+    plt.subplots_adjust(top=0.945,  bottom=0.085,
+                        left=0.08,  right=0.955,
+                        hspace=0.3, wspace=1.0)
     plt.show()
 
 
-size = 100
-
-positions = np.arange(0, size)
-
-uniform_keys = np.sort(np.random.uniform(0, 10000, size).astype(int))
-#uniform_keys = np.random.uniform(0, 10000, size).astype(int)
-normal_keys = np.sort(np.random.normal(5000, 35, size).astype(int))
-exp_keys = np.sort(np.random.exponential(5000, size).astype(int))
-
 if __name__ == "__main__":
-    graph(uniform_keys, positions)
-    graph(normal_keys, positions)
-    graph(exp_keys, positions)
+    main()

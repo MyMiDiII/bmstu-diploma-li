@@ -7,9 +7,8 @@ from time import process_time_ns
 
 from indexes.metrics import MetricsCallback
 
-from timer import timer
-
 from utils.keras_memory_usage import keras_model_memory_usage_in_bytes
+from utils.timer import timer
 
 class LossDiffStop(tf.keras.callbacks.Callback):
     def __init__(self, diff):

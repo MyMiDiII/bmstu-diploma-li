@@ -1,7 +1,7 @@
-import csv
 import matplotlib.pyplot as plt
 
 from utils.graph import graph
+from utils.csv_reader import load_keys
 from indexes.builder import LindexBuilder
 
 
@@ -25,16 +25,6 @@ def get_stats(modelname, keys):
 
     return build_time, find_time, lindex_size, lindex_mae
 
-
-def load_keys(filename):
-    keys = []
-    with open(filename, "r", newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        _ = next(reader)
-        for row in reader:
-            keys.append(int("".join(row)))
-
-    return keys
 
 def research():
     sizes = [10 ** i for i in range(1, 6)]
