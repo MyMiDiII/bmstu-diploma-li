@@ -72,10 +72,10 @@ int lindexColumn(sqlite3_vtab_cursor *cur,
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
     ////printf("stmt %p\n", (void *)lTab->stmt);
-    int columnValue = sqlite3_column_int(lTab->stmt, i);
+    int64_t columnValue = sqlite3_column_int64(lTab->stmt, i);
     ////printf("colVal %d\n", columnValue);
 
-    sqlite3_result_int(ctx, columnValue);
+    sqlite3_result_int64(ctx, columnValue);
 
     //puts("it ok");
     return SQLITE_OK;
@@ -115,8 +115,8 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
     //printf("argc %d\n", argc);
     for (int i = 0; i < argc; ++i)
     {
-        //printf("val %d\n", sqlite3_value_int(argv[i]));
-        PyList_Append(keys, PyLong_FromLong(sqlite3_value_int(argv[i])));
+        int64_t value = (int64_t)sqlite3_value_int64(argv[i]);
+        PyList_Append(keys, PyLong_FromLong(value));
     }
 
     PyObject* find = PyUnicode_FromString("find");

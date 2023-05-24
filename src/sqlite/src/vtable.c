@@ -7,7 +7,7 @@
 int initPythonIndex(sqlite3 *db,
                     const char *const tableName,
                     const char *const modelName,
-                    const int column_index,
+                    const long column_index,
                     lindex_vtab *vTab)
 {
     puts("CREATE");
@@ -43,7 +43,7 @@ int initPythonIndex(sqlite3 *db,
     int i = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
-        int key = sqlite3_column_int(stmt, column_index);
+        int64_t key = sqlite3_column_int64(stmt, column_index);
         int64_t rowid = sqlite3_column_int64(stmt, 0);
 
         PyList_Append(keys, PyLong_FromLong(key));
@@ -87,6 +87,32 @@ int initPythonIndex(sqlite3 *db,
     return SQLITE_OK;
 }
 
+static int callback(void* data, int argc, char** argv, char** azColName)
+{
+    char rTableName[1000];
+    strcpy(rTableName, (char*)data);
+
+    char *schema = (char*)data;
+
+    int i = 0;
+    for (; i < 13; ++i)
+    {
+        schema[i] = argv[0][i];
+    }
+    schema[i] = '\0';
+
+    strcat(schema, rTableName);
+
+    for (; argv[0][i] != '(' && argv[0][i] != '\0'; ++i);
+
+    char *end = argv[0] + i;
+
+    strcat(schema, end);
+
+    printf("\n");
+    return 0;
+}
+
 int lindexCreate(sqlite3 *db,
                  void *pAux,
                  const int argc,
@@ -102,27 +128,31 @@ int lindexCreate(sqlite3 *db,
     memset(vtab, 0, sizeof(*vtab));
     *ppVtab = &vtab->base;
 
-    char *sql_template = get_create_table_query_by_args(argc, argv);
-
     const char *vTableName = argv[2];
-    const char *rTableName = sqlite3_mprintf("r%s", vTableName);
+    const char *rTableName = vTableName + 4;
 
-    char *vSqlQuery = sqlite3_mprintf(sql_template, vTableName);
-    char *rSqlQuery = sqlite3_mprintf(sql_template, rTableName);
+    /* проверить существование регулярной таблицы */
 
-    //puts(vSqlQuery);
-    //puts(rSqlQuery);
+    char *sql_template = "SELECT sql FROM sqlite_master WHERE type='table' AND name='%s';";
+    char *schemaQuery = sqlite3_mprintf(sql_template, rTableName);
+    printf("%s\n", schemaQuery);
 
-    int rc = sqlite3_declare_vtab(db, vSqlQuery);
+    char* messaggeError;
+    char vSqlQuery[10000];
+    strcpy(vSqlQuery, vTableName);
+    int rc = sqlite3_exec(db, schemaQuery, callback, vSqlQuery, &messaggeError);
+    char *resVSqlQuery = sqlite3_mprintf("%s;", vSqlQuery);
+    printf("%s\n", resVSqlQuery);
 
-    if (!rc)
-        rc = sqlite3_exec(db, rSqlQuery, NULL, NULL, errMsg);
+    rc = sqlite3_declare_vtab(db, resVSqlQuery);
 
-    sqlite3_free(sql_template);
-    sqlite3_free(vSqlQuery);
-    sqlite3_free(rSqlQuery);
+    sqlite3_free(schemaQuery);
+    sqlite3_free(resVSqlQuery);
 
-    rc = initPythonIndex(db, rTableName, "fcnn2", 1, vtab);
+    long column_index = strtol(argv[3], NULL, 10);
+    const char *model = argv[4];
+
+    rc = initPythonIndex(db, rTableName, model, column_index, vtab);
 
     char* result_query = sqlite3_mprintf("SELECT * FROM %s WHERE ROWID = ?;", rTableName);
     sqlite3_prepare_v2(db, result_query, -1, &vtab->stmt, NULL);
