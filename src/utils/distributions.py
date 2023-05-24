@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 
-from utils.graph import graph
+from utils.graph import graph, config_subplot
 from utils.csv_reader import load_keys
 
 def main():
@@ -32,11 +32,14 @@ def main():
     for i, (distribution, keys) in enumerate(distribution_keys.items()):
         keys = (keys - keys[0]) / (keys[-1] - keys[0])
         cdf = np.arange(0, len(keys)) / (len(keys) - 1)
-        graph(positions[i],
-              keys,
-              [cdf],
-              title=distribution,
-              axis_names=("нормализованный ключ key", "F(key)"))
+
+        config_subplot(positions[i],
+                       title=distribution,
+                       axis_names=("нормализованный ключ key", "F(key)"))
+
+        graph(positions[i], keys, cdf)
+
+
     plt.subplots_adjust(top=0.945,  bottom=0.085,
                         left=0.08,  right=0.955,
                         hspace=0.3, wspace=1.0)

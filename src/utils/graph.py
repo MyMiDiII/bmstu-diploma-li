@@ -1,22 +1,21 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def graph(subplot, x, ys, labels=None, title=None, axis_names=(None, None)):
-    legend_flag  = bool(labels)
-
-    if not legend_flag:
-        labels = len(ys) * [None]
-
+def config_subplot(subplot, grid=True, title=None, axis_names=(None, None)):
     ax = plt.subplot(*subplot)
+
     ax.set_title(title)
     ax.set_xlabel(axis_names[0])
     ax.set_ylabel(axis_names[1])
 
-    for y, label in zip(ys, labels):
-        plt.plot(x, y, label=label, lw=2)
+    if grid:
+        ax.grid()
 
-    if legend_flag:
-        plt.legend()
+def graph(subplot, x, y, label=None):
+    ax = plt.subplot(*subplot)
 
-    plt.grid()
+    ax.plot(x, y, label=label, lw=2)
+
+    if label:
+        ax.legend()
 
