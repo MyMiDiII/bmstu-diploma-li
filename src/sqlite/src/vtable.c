@@ -7,6 +7,7 @@
 int initPythonIndex(sqlite3 *db,
                     const char *const tableName,
                     const char *const modelName,
+                    const int column_index,
                     lindex_vtab *vTab)
 {
     puts("CREATE");
@@ -42,7 +43,7 @@ int initPythonIndex(sqlite3 *db,
     int i = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
-        int key = sqlite3_column_int(stmt, 1);
+        int key = sqlite3_column_int(stmt, column_index);
         int64_t rowid = sqlite3_column_int64(stmt, 0);
 
         PyList_Append(keys, PyLong_FromLong(key));
@@ -121,7 +122,7 @@ int lindexCreate(sqlite3 *db,
     sqlite3_free(vSqlQuery);
     sqlite3_free(rSqlQuery);
 
-    rc = initPythonIndex(db, rTableName, "fcnn2", vtab);
+    rc = initPythonIndex(db, rTableName, "fcnn2", 1, vtab);
 
     char* result_query = sqlite3_mprintf("SELECT * FROM %s WHERE ROWID = ?;", rTableName);
     sqlite3_prepare_v2(db, result_query, -1, &vtab->stmt, NULL);

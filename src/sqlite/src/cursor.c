@@ -123,7 +123,15 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
     printf("keys_size %ld\n", PyList_Size(keys));
     printf("find%p\n", find);
 
-    PyObject* rowids = PyObject_CallMethodObjArgs(lTab->lindex, find, keys, NULL);
+    PyObject* tuple_rowids = PyObject_CallMethodObjArgs(lTab->lindex, find, keys, NULL);
+    PyObject* rowids;
+    int tmp;
+
+    if (PyTuple_Check(tuple_rowids)) {
+        puts("ok");
+    }
+
+    PyArg_ParseTuple(tuple_rowids, "Oi", &rowids, &tmp);
     if (!rowids)
     {
         PyErr_Print();
