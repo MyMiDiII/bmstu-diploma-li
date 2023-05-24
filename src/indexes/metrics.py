@@ -7,8 +7,8 @@ class MetricsCallback(Callback):
         self.x = x
         self.y_true = y_true
         self.N = len(x)
-        self.max_absolute_error = 0.0
-        self.mean_absolute_error = 0.0
+        self.max_absolute_error = 0
+        self.mean_absolute_error = 0
 
     def on_train_end(self, logs=None):
         y_pred = self.model.predict(self.x, verbose=0).reshape(-1)

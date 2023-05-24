@@ -7,6 +7,8 @@ class FCNN(tf.keras.Model):
                  output_func:   str = None):
         super().__init__()
 
+        self.output_func = output_func
+        self.hidden_layers_types = hidden_layers
         self.hidden_layers = []
         for neurons_num, activation, initializer in hidden_layers:
             self.hidden_layers.append(
@@ -15,7 +17,7 @@ class FCNN(tf.keras.Model):
                                           kernel_initializer=initializer,
                                           bias_initializer=initializer))
 
-        self.output_layer = tf.keras.layers.Dense(1, activation=output_func)
+        self.output_layer = tf.keras.layers.Dense(1, activation=self.output_func)
 
 
     def call(self, inputs):
@@ -25,4 +27,15 @@ class FCNN(tf.keras.Model):
             prev_layer = layer(prev_layer)
 
         return self.output_layer(prev_layer)
+
+
+    def get_config(self):
+        return {"hidden_layers": self.hidden_layers_types,
+                "output_func"  : self.output_func}
+
+
+    @classmethod
+    def from_config(cls, config):
+        print(config)
+        return cls(**config)
 

@@ -1,4 +1,7 @@
 import sys
+import os
+import pickle
+
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -28,7 +31,8 @@ class Lindex:
         self.trained = False
         #print("build ok");
 
-        self.statistics = {}
+        self.max_absolute_error = 0
+        self.mean_absolute_error = 0
 
 
     def _build_model(self):
@@ -62,7 +66,7 @@ class Lindex:
                 callbacks=[LossDiffStop(1e-5), self.metrics],
                 epochs=30)
 
-    #@timer
+    @timer
     def train(self, keys: list[int], data: list[any]):
         print("CALLED")
         self._init_for_train(keys, data)
@@ -70,6 +74,9 @@ class Lindex:
         self.metrics = MetricsCallback(self.norm_keys, self.positions)
 
         self._true_train()
+
+        self.mean_absolute_error = self.metrics.mean_absolute_error
+        self.max_absolute_error = self.metrics.max_absolute_error
 
         self.trained = True
 
@@ -96,12 +103,12 @@ class Lindex:
             if self.keys[position] == key:
                 return position
 
-            low = max(position - self.metrics.mean_absolute_error, 0)
-            high = min(position + self.metrics.mean_absolute_error, self.N - 1)
+            low = max(position - self.mean_absolute_error, 0)
+            high = min(position + self.mean_absolute_error, self.N - 1)
 
             if not (self.keys[low] < key < self.keys[high]):
-                low = max(position - self.metrics.max_absolute_error, 0)
-                high = min(position + self.metrics.max_absolute_error, self.N - 1)
+                low = max(position - self.max_absolute_error, 0)
+                high = min(position + self.max_absolute_error, self.N - 1)
 
             while low <= high:
                 mid = (low + high) // 2
@@ -117,7 +124,7 @@ class Lindex:
         vec_clarify = np.vectorize(clarify_one)
         return vec_clarify(keys, positions)
 
-    #@timer
+    @timer
     def find(self, keys):
         #print("called")
         if not self.trained or not keys:
@@ -134,7 +141,7 @@ class Lindex:
         pass
 
     def is_trained(self):
-        return self.is_trained
+        return self.trained
 
     def my_size(self):
         size = 0
@@ -152,5 +159,20 @@ class Lindex:
         return size
 
     def mae(self):
-        return self.metrics.mean_absolute_error;
+        return self.mean_absolute_error;
+
+    def save_model(self, path):
+        self.model.save(f"{path}/model")
+
+        index = {
+                "keys" : self.keys,
+                "data" : self.data,
+                "positions" : self.positions,
+                "max_ae" : self.max_absolute_error,
+                "mean_ae" : self.mean_absolute_error,
+                "trained" : self.trained
+                }
+
+        with open(f"{path}/data.pickle", "wb") as f:
+            pickle.dump(index, f)
 
