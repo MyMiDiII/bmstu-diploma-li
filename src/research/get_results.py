@@ -15,6 +15,8 @@ def get_stats(distribution, model_name, keys):
 
     _, build_time = index.train(keys, keys)
 
+    index.save_model(f"models/{distribution}-{model_name}-{N}")
+
     find_time = 0
     for key in keys:
         _, tmp_time = index.find([key])
@@ -29,7 +31,7 @@ def get_stats(distribution, model_name, keys):
 
     return Result(distribution, model_name, N,
                   build_time, find_time,
-                  lindex_size, lindex_mae)
+                  lindex_size, lindex_mae_percent)
 
 
 def save_into_file(result: Result, path: str):
@@ -43,8 +45,7 @@ def save_into_file(result: Result, path: str):
 
 
 def research():
-    #sizes = [10 * i for i in range(1, 10)]
-    sizes = [10]
+    sizes = [10 ** i for i in range(1, 5)]
 
     for distribution in distributions:
         print(f"DIST = {distribution}")
