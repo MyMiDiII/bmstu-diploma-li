@@ -32,9 +32,9 @@ def main():
     keys_distribution = config["keys"]
     models_names = config["models"]
 
-    keys = keys_variants[keys_distribution]
+    keys = [6, 4, 5, 1, 2, 3, -1, 0, -10]
     size = len(keys)
-    values = np.random.randint(0, 100, size)
+    values = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     results = dict()
     prediced_positions = dict()
@@ -50,7 +50,7 @@ def main():
 
         keys.sort()
         start = process_time_ns()
-        ppos = index.find(keys)
+        ppos, _ = index.find(keys)
         predict_time = process_time_ns() - start
 
         max_abs_err = index.metrics.max_absolute_error
@@ -65,6 +65,9 @@ def main():
         results_table.add_row([key] + list(value))
 
     print(results_table)
+
+    print(true_positions)
+    print(prediced_positions.values())
 
     graph(keys, true_positions, prediced_positions.values(), prediced_positions.keys())
 
