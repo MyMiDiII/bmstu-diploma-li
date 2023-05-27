@@ -16,6 +16,7 @@ class OpenlisModel(AbstractModel):
         pass
 
     def train(self, keys, positions):
+        self.N = len(keys)
         data_set = DataSet(keys, positions)
         data_sets = li.data.create_train_validate_data_sets(data_set,
                                         validation_size=0)
@@ -30,15 +31,15 @@ class OpenlisModel(AbstractModel):
 
     def __call__(self, keys):
         positions = self.rmi_db.select(keys)
-        return positions
+        return positions / self.N
 
     def get_max_abs_err(self):
-        return np.max(np.concatenate((self.rmi_db._model.max_error_left,
-              self.rmi_db._model.max_error_right))).astype(int)
+        return np.max(np.maximum(self.rmi_db._model.max_error_left,
+              self.rmi_db._model.max_error_right)).astype(int)
 
     def get_mean_abs_err(self):
-        return np.mean(np.concatenate((self.rmi_db._model.max_error_left,
-              self.rmi_db._model.max_error_right))).astype(int)
+        return np.mean(np.maximum(self.rmi_db._model.max_error_left,
+              self.rmi_db._model.max_error_right)).astype(int)
 
     def size(self):
         return 0
