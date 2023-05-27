@@ -33,10 +33,12 @@ class OpenlisModel(AbstractModel):
         return positions
 
     def get_max_abs_err(self):
-        return 0
+        return np.max(np.concatenate((self.rmi_db._model.max_error_left,
+              self.rmi_db._model.max_error_right))).astype(int)
 
     def get_mean_abs_err(self):
-        return 0
+        return np.mean(np.concatenate((self.rmi_db._model.max_error_left,
+              self.rmi_db._model.max_error_right))).astype(int)
 
     def size(self):
         return 0
