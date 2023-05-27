@@ -4,10 +4,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import numpy as np
 import tensorflow as tf
 
-from indexes.models.tf_model import TFModel
-from indexes.models.tf_models.fcnn import FCNN
-from indexes.models.tf_models.rbf import RBN
-from indexes.models.openlis_model import OpenlisModel
 from indexes.lindex import Lindex
 
 class LindexBuilder:
@@ -22,22 +18,34 @@ class LindexBuilder:
         print(model_name)
         match model_name:
             case "fcnn2":
-                print("f2")
+                from indexes.models.tf_model import TFModel
+                from indexes.models.tf_models.fcnn import FCNN
                 fcnn = FCNN([(layer_neurons_num, "relu", initializer)] * 2)
                 self.model = TFModel(fcnn)
 
             case "fcnn3":
-                print("f3")
+                from indexes.models.tf_model import TFModel
+                from indexes.models.tf_models.fcnn import FCNN
                 fcnn = FCNN([(layer_neurons_num, "relu", initializer)] * 3)
                 self.model = TFModel(fcnn)
 
             case "rbf":
-                print("rbn")
+                from indexes.models.tf_model import TFModel
+                from indexes.models.tf_models.rbf import RBN
                 rbn = RBN(None)
                 self.model = TFModel(rbn)
 
             case "openlis":
+                from indexes.models.openlis_model import OpenlisModel
                 self.model = OpenlisModel()
+
+            case "fcnn2-pt":
+                from indexes.models.pt_model import PTModel
+                self.model = PTModel(2)
+
+            case "fcnn3-pt":
+                from indexes.models.pt_model import PTModel
+                self.model = PTModel(3)
 
 
     def build(self):

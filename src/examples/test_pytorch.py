@@ -58,7 +58,11 @@ for epoch in range(num_epochs):
         optimizer.step()
 
     # Print the loss for monitoring
-    #print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item()}")
+    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item()}")
+
+    if loss.item() < 1e-3:
+        break
+
 
 training_time = time.time() - start_time
 print("PyTorch training time:", training_time, "seconds")
@@ -68,5 +72,7 @@ print("PyTorch training time:", training_time, "seconds")
 start_time = time.time()
 with torch.no_grad():
     output = model(input_tensor)
+    print(type(output.numpy()))
+    print(output.numpy().reshape(-1))
 training_time = time.time() - start_time
 print("PyTorch training time:", training_time, "seconds")
