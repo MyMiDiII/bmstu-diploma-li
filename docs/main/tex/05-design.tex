@@ -298,15 +298,15 @@ $x_{\text{min}},~x_{\text{max}}$ --- минимальное и максимал�
         границы}
         $lower, upper \gets binary\_search(key, bin\_lower, bin\_upper)$\;
 
-        \uIf{$lower == upper$}{
+        \If{$lower == upper$}{
             \Return $lower - (-1)^{(is\_lower)} \cdot constraint$\;
         }
-        \uElseIf{$is\_lower$}{
+
+        \If{$is\_lower$}{
             \Return $upper$\;
         }
-        \Else{
-            \Return $lower$\;
-        }
+
+        \Return $lower$\;
     }
 
     \Begin{
