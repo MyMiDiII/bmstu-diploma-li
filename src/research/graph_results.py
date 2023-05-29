@@ -8,10 +8,15 @@ from research.config import distributions, models
 from research.result import Results
 from utils.graph import graph, config_subplot
 
-SIZES = [10 * i for i in range(1, 10)]
+SIZES = []
+SIZES += [10 ** i for i in range(1, 8)]
+#SIZES += [10 ** 3 * i for i in range(1, 10, 1)]
+#SIZES += [10 ** 4 * i for i in range(1, 10, 1)]
+#SIZES += [10 ** 5 * i for i in range(1, 10, 1)]
+#SIZES += [10 ** 6 * i for i in [2, 5, 8, 10]]
 
 RESULTS_PATH = "results/"
-DISTRIBUTION_NAME = "uniform"
+DISTRIBUTION_NAME = "osm"
 DISTRIBUTION_PATH = RESULTS_PATH + DISTRIBUTION_NAME + "-"
 
 def plot_model(model_result: Results, subplots):

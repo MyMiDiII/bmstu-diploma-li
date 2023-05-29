@@ -8,7 +8,7 @@ from utils.csv_reader import load_keys
 
 distribution = "osm"
 size = 100000
-model = "fcnn2-pt"
+model = "fcnn2"
 
 def build_histogram():
     keys = load_keys(f"data/csv/{distribution}/{distribution}{size}.csv")
@@ -24,7 +24,7 @@ def build_histogram():
 
     predictions = index._predict(np.array(keys))
 
-    errors = np.abs(positions - predictions)
+    errors = positions - predictions
     N = len(errors)
 
     plt.hist(errors, bins=int(floor(np.log2(N))) + 2)

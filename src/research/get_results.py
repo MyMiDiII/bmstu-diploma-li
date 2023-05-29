@@ -15,13 +15,19 @@ def get_stats(distribution, model_name, keys):
 
     _, build_time = index.train(keys, keys)
 
-    index.save_model(f"models/{distribution}-{model_name}-{N}")
+    dir_path = f"models/{distribution}-{model_name}-{N}"
+    os.makedirs(dir_path, exist_ok=True)
+    index.save_model(dir_path)
 
+    #step = 1000 if N > 1000 else 1
+    #find_keys = [x for i, x in enumerate(keys) if i % step == 0]
+    #print("run")
+    find_keys = keys
     find_time = 0
-    for key in keys:
+    for key in find_keys:
         _, tmp_time = index.find([key])
         find_time += tmp_time
-    find_time /= N
+    find_time /= len(find_keys)
 
     lindex_size = index.my_size()
     lindex_mae = index.mae()
@@ -45,7 +51,10 @@ def save_into_file(result: Result, path: str):
 
 
 def research():
-    sizes = [10 ** i for i in range(1, 5)]
+    #sizes = [10 ** 6 * i for i in [2, 5, 8, 10]]
+    #sizes = [10 ** 5 * i for i in range(4, 10)]
+    #sizes = [10 ** i for i in range(1, 7)]
+    sizes = [10**5]
 
     for distribution in distributions:
         print(f"DIST = {distribution}")
@@ -56,6 +65,7 @@ def research():
 
         for model in models:
             for keys in sizes_keys:
+                print(len(keys))
                 result = get_stats(distribution, model, keys)
 
                 save_into_file(result, f"{distribution}-{model}")
