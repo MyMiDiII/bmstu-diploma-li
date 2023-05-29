@@ -26,10 +26,11 @@ class Lindex:
         if keys.size == 0:
             return
 
-        min_key = np.min(self.keys)
-        max_key = np.max(self.keys)
+        min_key = self.keys[0]
+        max_key = self.keys[-1]
         return (keys - min_key) / (max_key - min_key)
 
+    #@profile
     def _init_for_train(self, keys: list[int], data: list[any]):
         sort_indexes = np.argsort(keys)
 
@@ -39,10 +40,12 @@ class Lindex:
         self.data = np.array(data)[sort_indexes]
         self.positions = np.arange(0, self.N) / (self.N - 1)
 
+    #@profile
     def _true_train(self):
         self.model.train(self.norm_keys, self.positions)
 
     @timer
+    #@profile
     def train(self, keys: list[int], data: list[any]):
         self._init_for_train(keys, data)
 
@@ -53,6 +56,7 @@ class Lindex:
 
         self.trained = True
 
+    #@profile
     def _predict(self, keys):
         if not self.trained:
             return None
@@ -61,6 +65,7 @@ class Lindex:
         pposition = self.model(keys)
         return np.around(pposition * self.N).astype(int).reshape(-1)
 
+    #@profile
     def _clarify(self, keys, positions):
         def clarify_one(key, position):
             position = max(min(position, self.N - 1), 0)
