@@ -50,6 +50,8 @@ int lindexNext(sqlite3_vtab_cursor *cur)
 
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
+    PyArray_ITER_NEXT(pCur->iter);
+
     sqlite3_reset(lTab->stmt);
     sqlite3_clear_bindings(lTab->stmt);
     int64_t rowid = *(int64_t *)PyArray_ITER_DATA(pCur->iter);
@@ -57,7 +59,6 @@ int lindexNext(sqlite3_vtab_cursor *cur)
     sqlite3_bind_int64(lTab->stmt, 1, rowid);
     sqlite3_step(lTab->stmt);
 
-    PyArray_ITER_NEXT(pCur->iter);
 
     return SQLITE_OK;
 }
@@ -106,7 +107,9 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
                  int argc,
                  sqlite3_value **argv)
 {
-    puts("FILTER");
+    //puts("FILTER");
+    //printf("%d\n", idxNum);
+
     import_array()
     lindex_vtab *lTab = (lindex_vtab*)cur->pVtab;
 
@@ -116,42 +119,76 @@ int lindexFilter(sqlite3_vtab_cursor *cur,
     for (int i = 0; i < argc; ++i)
     {
         int64_t value = (int64_t)sqlite3_value_int64(argv[i]);
+        //printf("%ld\n", value);
         PyList_Append(keys, PyLong_FromLong(value));
     }
 
-    PyObject* find = PyUnicode_FromString("find");
-    printf("keys_size %ld\n", PyList_Size(keys));
-    printf("find%p\n", find);
+    PyObject* tuple_rowids;
 
-    PyObject* tuple_rowids = PyObject_CallMethodObjArgs(lTab->lindex, find, keys, NULL);
-    PyObject* rowids;
-    int tmp;
+    if (!idxNum)
+    {
+        //puts("=");
+        PyObject* find = PyUnicode_FromString("find");
+        //printf("keys_size %ld\n", PyList_Size(keys));
+        //printf("find%p\n", find);
 
-    if (PyTuple_Check(tuple_rowids)) {
-        puts("ok");
+        tuple_rowids = PyObject_CallMethodObjArgs(lTab->lindex, find, keys, NULL);
+    }
+    else
+    {
+        //puts("range");
+        PyObject* constraints = PyList_New(0);
+        PyObject* noneObj = Py_None;
+
+        for (int i = 0; i < argc; ++i)
+        {
+            PyList_Append(constraints, PyLong_FromLong(idxNum % 10));
+        }
+
+        if (idxNum / 10 != 3)
+        {
+            Py_INCREF(noneObj);
+            PyList_Insert(keys, idxNum / 10 % 2, noneObj);
+
+            Py_INCREF(noneObj);
+            PyList_Insert(constraints, idxNum / 10 % 2, noneObj);
+        }
+
+        PyObject* prange= PyUnicode_FromString("predict_range");
+        //printf("keys_size %ld\n", PyList_Size(keys));
+        //printf("find%p\n", prange);
+
+        tuple_rowids = PyObject_CallMethodObjArgs(lTab->lindex, prange, keys, constraints, NULL);
     }
 
+    PyObject* rowids;
+
+    //if (PyTuple_Check(tuple_rowids)) {
+    //    puts("ok");
+    //}
+
+    int tmp;
     PyArg_ParseTuple(tuple_rowids, "Oi", &rowids, &tmp);
     if (!rowids)
     {
         PyErr_Print();
         PyErr_Clear();
     }
-    printf("%d\n", PyArray_Check(rowids));
+    //printf("is array %d\n", PyArray_Check(rowids));
     npy_intp size = PyArray_SIZE(rowids);
-    printf("%d\n", size);
-    puts("are get");
+    //printf("rowids size %d\n", size);
+    //puts("are get");
     PyArrayIterObject *iter = (PyArrayIterObject *)PyArray_IterNew(rowids);
-    puts("iter");
+    //puts("iter");
 
 
     lindex_cursor *pCur = (lindex_cursor*)cur;
     pCur->rowids = rowids;
     pCur->iter = iter;
-    puts("save");
+    //puts("save");
 
     int64_t rowid = *(int64_t *)PyArray_ITER_DATA(pCur->iter);
-    printf("rowid %ld\n", rowid);
+    //printf("rowid %ld\n", rowid);
     sqlite3_bind_int64(lTab->stmt, 1, rowid);
     sqlite3_step(lTab->stmt);
 
@@ -162,20 +199,71 @@ int lindexBestIndex(sqlite3_vtab *tab,
                     sqlite3_index_info *pIndexInfo)
 {
     //puts("BEST");
+    //printf("num contr %d\n", pIndexInfo->nConstraint);
 
-    if (pIndexInfo->nConstraint > 0)
+    if (pIndexInfo->nConstraint == 1)
+    {
+        if (pIndexInfo->aConstraint[0].usable)
+        {
+            int mode;
+            switch (pIndexInfo->aConstraint[0].op)
+            {
+                case SQLITE_INDEX_CONSTRAINT_EQ:
+                    //puts("=");
+                    mode = 0;
+                    break;
+                case SQLITE_INDEX_CONSTRAINT_GT:
+                    //puts(">");
+                    mode = 11;
+                    break;
+                case SQLITE_INDEX_CONSTRAINT_GE:
+                    //puts(">=");
+                    mode = 10;
+                    break;
+                case SQLITE_INDEX_CONSTRAINT_LT:
+                    //puts("<");
+                    mode = 21;
+                    break;
+                case SQLITE_INDEX_CONSTRAINT_LE:
+                    //puts("<=");
+                    mode = 20;
+                    break;
+                default:
+                    return SQLITE_CONSTRAINT;
+            }
+            pIndexInfo->idxNum = mode;
+            pIndexInfo->aConstraintUsage[0].argvIndex = 1;
+            pIndexInfo->aConstraintUsage[0].omit = 1;
+
+            return SQLITE_OK;
+        }
+
+        return SQLITE_CONSTRAINT;
+    }
+
+    if (pIndexInfo->nConstraint == 2)
     {
         for (int i = 0; i < pIndexInfo->nConstraint; i++)
         {
-            if (pIndexInfo->aConstraint[i].usable
-                && pIndexInfo->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ)
+            switch (pIndexInfo->aConstraint[i].op)
             {
-                pIndexInfo->aConstraintUsage[i].argvIndex = i+1;
-                pIndexInfo->aConstraintUsage[i].omit = 1;
+                case SQLITE_INDEX_CONSTRAINT_LE:
+                    break;
+                case SQLITE_INDEX_CONSTRAINT_GE:
+                    break;
+                default:
+                    return SQLITE_CONSTRAINT;
             }
+
+            pIndexInfo->aConstraintUsage[i].argvIndex = i + 1;
+            pIndexInfo->aConstraintUsage[i].omit = 1;
         }
+
+        pIndexInfo->idxNum = 30;
+
+        return SQLITE_OK;
     }
 
-    return SQLITE_OK;
+    return SQLITE_CONSTRAINT;
 }
 
