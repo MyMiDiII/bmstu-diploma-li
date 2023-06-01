@@ -20,10 +20,13 @@ class OpenlisModel(AbstractModel):
         data_set = DataSet(keys, positions)
         data_sets = li.data.create_train_validate_data_sets(data_set,
                                         validation_size=0)
+
         rmi = openlis.model.RMI_simple(data_sets.train,
                                hidden_layer_widths=[8,8],
                                num_experts=100)
+
         self.rmi_db = openlis.database.IndexStructurePacked(model=rmi)
+
         self.rmi_db.train(batch_sizes=[10000,1000],
              max_steps=[500,500],
              learning_rates=[0.001,1000],

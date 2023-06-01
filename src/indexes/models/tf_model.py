@@ -1,4 +1,9 @@
 import tensorflow as tf
+#print(tf.__version__)
+#print(tf.test.gpu_device_name())
+#tf.debugging.set_log_device_placement(True)
+#from tensorflow.python.client import device_lib
+#print("DEVICES", device_lib.list_local_devices())
 
 from indexes.models.abs_model import AbstractModel
 from indexes.metrics import MetricsCallback
@@ -33,9 +38,9 @@ class TFModel(AbstractModel):
         self.tf_model.fit(
                 keys,
                 positions,
-                batch_size=1,
+                batch_size=128,
                 callbacks=[LossDiffStop(1e-3), self.metrics],
-                epochs=30)
+                epochs=60)
 
     def get_max_abs_err(self):
         return self.metrics.max_absolute_error
