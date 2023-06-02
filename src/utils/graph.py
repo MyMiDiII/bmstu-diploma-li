@@ -14,7 +14,8 @@ def config_subplot(subplot, grid=True, title=None, axis_names=(None, None)):
 def graph(subplot, x, y, label=None):
     ax = plt.subplot(*subplot)
 
-    ax.plot(x, y, label=label, lw=2)
+    #ax.plot(x, y, label=label, lw=2)
+    ax.plot(x, y, "o-", label=label, lw=2)
 
     if label:
         ax.legend()

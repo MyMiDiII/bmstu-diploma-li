@@ -9,11 +9,16 @@ from research.result import Results
 from utils.graph import graph, config_subplot
 
 SIZES = []
-SIZES += [10 ** i for i in range(1, 8)]
+SIZES += [10 ** i for i in range(4, 7)]
+#SIZES += [10 ** 6 * 2 + 10 ** 5 * i for i in [2, 5, 7, 9]]
+#SIZES += [10 ** 1 * i for i in range(1, 10, 1)]
+#SIZES += [10 ** 2 * i for i in range(1, 10, 1)]
 #SIZES += [10 ** 3 * i for i in range(1, 10, 1)]
 #SIZES += [10 ** 4 * i for i in range(1, 10, 1)]
 #SIZES += [10 ** 5 * i for i in range(1, 10, 1)]
-#SIZES += [10 ** 6 * i for i in [2, 5, 8, 10]]
+#SIZES += [10 ** 6 * i for i in range(1, 10, 1)]
+SIZES += [10 ** 7 * i for i in [1, 2, 3, 5, 7, 9]]
+SIZES += [10 ** 8 * i for i in range(1, 10)]
 
 RESULTS_PATH = "results/"
 DISTRIBUTION_NAME = "osm"
@@ -25,28 +30,45 @@ def plot_model(model_result: Results, subplots):
 
     build_times = model_result.build_times
     find_times = model_result.find_times
-    model_sizes = model_result.bytes_sizes
-    model_maes = model_result.maes
+    pred_times = model_result.predict_times
+    clar_times = model_result.clarify_times
+    index_sizes = model_result.index_sizes
+    model_sizes = model_result.model_sizes
+    model_mean_aes = model_result.mean_aes
+    model_max_aes = model_result.max_aes
 
-    graph(subplots[0], sizes, build_times, label=model)
-    graph(subplots[1], sizes, find_times, label=model)
-    graph(subplots[2], sizes, model_sizes, label=model)
-    graph(subplots[3], sizes, model_maes, label=model)
+    #graph(subplots[0], sizes, build_times, label=model)
+
+    graph(subplots[0], sizes, find_times, label=model+"-find")
+    graph(subplots[0], sizes, pred_times, label=model+"-predict")
+    graph(subplots[0], sizes, clar_times, label=model+"-clarify")
+
+    #graph(subplots[2], sizes, index_sizes, label=model+"-index")
+    #graph(subplots[2], sizes, model_sizes, label=model+"-model")
+
+    #graph(subplots[3], sizes, model_mean_aes, label=model+"-mean")
+    #graph(subplots[3], sizes, model_max_aes, label=model+"max")
 
 
 def plot_all(parsed_results):
     subplots = [
-            (2, 2, 1),
-            (2, 2, 2),
-            (2, 2, 3),
-            (2, 2, 4)
+            (1, 1, 1),
             ]
     titles = [
-            "Время построения",
             "Время поиска",
-            "Память",
-            "Средняя абсолютная ошибка"
             ]
+    #subplots = [
+    #        (2, 2, 1),
+    #        (2, 2, 2),
+    #        (2, 2, 3),
+    #        (2, 2, 4)
+    #        ]
+    #titles = [
+    #        "Время построения",
+    #        "Время поиска",
+    #        "Память",
+    #        "Средняя абсолютная ошибка"
+    #        ]
     xlabel = "количество ключей"
     ylabels = [
             "время, нс",
