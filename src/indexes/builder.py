@@ -4,6 +4,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import numpy as np
 import tensorflow as tf
 
+
 from indexes.lindex import Lindex
 
 class LindexBuilder:
@@ -41,6 +42,7 @@ class LindexBuilder:
 
             case "fcnn2-pt":
                 from indexes.models.pt_model import PTModel
+                print("PTModel")
                 self.model = PTModel(2)
 
             case "fcnn3-pt":
@@ -49,6 +51,7 @@ class LindexBuilder:
 
 
     def build(self):
+        print("BUILD RUN")
         return Lindex(self.model)
 
 # draft

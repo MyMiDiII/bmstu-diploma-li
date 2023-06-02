@@ -4,8 +4,10 @@ import numpy as np
 class MetricsCallback(Callback):
     def __init__(self, x, y_true):
         super(MetricsCallback, self).__init__()
-        self.x = x
-        self.y_true = y_true
+        random_indices = np.random.choice(len(x), size=1000, replace=False)
+
+        self.x = x[random_indices]
+        self.y_true = y_true[random_indices]
         self.N = len(x)
         self.max_absolute_error = 0
         self.mean_absolute_error = 0

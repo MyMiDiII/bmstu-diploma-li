@@ -33,13 +33,27 @@ class Lindex:
 
     #@profile
     def _init_for_train(self, keys: list[int], data: list[any]):
+        print("SORT")
         sort_indexes = np.argsort(keys)
 
         self.N = len(keys)
-        self.keys = np.array(keys)[sort_indexes]
-        self.norm_keys = self._normalize(self.keys)
-        self.data = np.array(data)[sort_indexes]
-        self.positions = np.arange(0, self.N) / (self.N - 1)
+        size = self.N
+        print("KEYS")
+        self.keys = np.memmap(f"keys{self.N}.dat", dtype='int64',
+                              mode='w+', shape=(size, ))
+        np.copyto(self.keys, np.array(keys)[sort_indexes])
+        #self.keys = np.array(keys)[sort_indexes]
+        print("NORM")
+        self.norm_keys = np.memmap(f"norm_keys{self.N}.dat", dtype='float32',
+                              mode='w+', shape=(size, ))
+        np.copyto(self.norm_keys, self._normalize(self.keys))
+        #self.norm_keys = self._normalize(self.keys)
+        #self.data = np.array(data)[sort_indexes]
+        print("POS")
+        self.positions = np.memmap(f"pos{self.N}.dat", dtype='float32',
+                              mode='w+', shape=(size, ))
+        np.copyto(self.positions, np.arange(0, self.N) / (self.N - 1))
+        #self.positions = np.arange(0, self.N) / (self.N - 1)
 
     #@profile
     def _true_train(self):
@@ -57,6 +71,7 @@ class Lindex:
 
         self.trained = True
 
+    @timer
     #@profile
     def _predict(self, keys):
         if not self.trained:
@@ -66,6 +81,7 @@ class Lindex:
         pposition = self.model(keys)
         return np.around(pposition * self.N).astype(int).reshape(-1)
 
+    @timer
     #@profile
     def _clarify(self, keys, positions):
         def clarify_one(key, position):
@@ -105,14 +121,14 @@ class Lindex:
 
         keys = np.array(keys)
         #print("SELF KEYS", self.keys)
-        positions = self._predict(keys)
+        positions, predict_time = self._predict(keys)
         #print("POS NOT CLARIFY", positions)
-        positions = self._clarify(keys, positions)
+        positions, clarify_time = self._clarify(keys, positions)
 
-        #print("POSITIONS", positions)
         #print("DATA", self.data[positions])
 
-        return self.data[positions]
+        #return self.data[positions], predict_time, clarify_time
+        return positions, predict_time, clarify_time
 
     def insert(self, key, data):
         index = np.searchsorted(self.keys, key)
@@ -199,14 +215,16 @@ class Lindex:
     def is_trained(self):
         return self.trained
 
-    def my_size(self):
+    def my_sizes(self):
         size = 0
         attributes = vars(self)
+        model_size = 0
 
         for attr_name, attr_value in attributes.items():
             if attr_name == "model":
                 #print(attr_name)
-                size += attr_value.size()
+                model_size = attr_value.size()
+                size += model_size
             if attr_name not in ["statistics",
                                  "metrics",
                                  "history",
@@ -220,17 +238,20 @@ class Lindex:
                 else:
                     size += sys.getsizeof(attr_value)
 
-        return size
+        return size, model_size
 
-    def mae(self):
+    def mean_ae(self):
         return self.mean_abs_err
+
+    def max_ae(self):
+        return self.max_abs_err
 
     def save_model(self, path):
         self.model.save(f"{path}/model")
 
         index = {
                 "keys" : self.keys,
-                "data" : self.data,
+                #"data" : self.data,
                 "positions" : self.positions,
                 "max_ae" : self.max_abs_err,
                 "mean_ae" : self.mean_abs_err,

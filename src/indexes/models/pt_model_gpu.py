@@ -4,6 +4,9 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from indexes.models.abs_model import AbstractModel
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
+
 class PTModel(AbstractModel):
 
     def __init__(self, layers_num):
@@ -13,31 +16,24 @@ class PTModel(AbstractModel):
             *([torch.nn.Linear(32, 32), torch.nn.ReLU()] * layers_num),
             torch.nn.Linear(32, 1)
         )
+        self.pt_model.to(device)
 
     def build(self):
-        print("PT BUILD")
         self.loss_function = torch.nn.MSELoss()
         self.optimizer = torch.optim.SGD(self.pt_model.parameters(), lr=1e-2)
 
     def train(self, keys, positions):
-        print("INIT")
         self.N = len(keys)
-        input_tensor = torch.from_numpy(keys).unsqueeze(1).float()
-        output_tensor = torch.from_numpy(positions).unsqueeze(1).float()
+        input_tensor = torch.from_numpy(keys).unsqueeze(1).float().to(device)
+        output_tensor = torch.from_numpy(positions).unsqueeze(1).float().to(device)
 
-        print("DATASET")
         dataset = TensorDataset(input_tensor, output_tensor)
 
-        print("DATALOADER")
-        batch_size = 32
+        batch_size = 1
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-        print("RUN")
         num_epochs = 30
         for epoch in range(num_epochs):
-            mean_ae = 0
-            max_ae = 0
-
             epoch_loss = 0.0
             for i, (batch_inputs, batch_outputs) in enumerate(dataloader):
                 self.optimizer.zero_grad()
@@ -55,24 +51,15 @@ class PTModel(AbstractModel):
             if epoch_loss < 1e-5:
                 break
 
-        random_indices = torch.randint(low=0, high=self.N, size=(1000,))
-        input_tensor = input_tensor[random_indices]
-        positions = positions[random_indices]
-
         with torch.no_grad():
             predictions = self.pt_model(input_tensor)
 
-        y_pred = predictions.numpy().reshape(-1)
+        y_pred = predictions.cpu().numpy().reshape(-1)
 
         absolute_errors = np.round(np.abs(positions - y_pred) * self.N).astype(int)
 
         self.max_absolute_error = np.max(absolute_errors)
         self.mean_absolute_error = np.ceil(np.mean(absolute_errors)).astype(int)
-
-        print()
-        print("mean", self.mean_absolute_error)
-        print("max_ae", self.max_absolute_error)
-
 
     def get_max_abs_err(self):
         return self.max_absolute_error
@@ -81,18 +68,13 @@ class PTModel(AbstractModel):
         return self.mean_absolute_error
 
     def __call__(self, keys):
-        keys = torch.from_numpy(keys).unsqueeze(1).float()
-        return self.pt_model(keys).detach().numpy().reshape(-1)
+        keys = torch.from_numpy(keys).unsqueeze(1).float().to(device)
+        return self.pt_model(keys).cpu().detach().numpy().reshape(-1)
 
     def size(self):
-        torch.save(self.pt_model.state_dict(), 'model.pth')
-
-        import os
-        model_size_bytes = os.path.getsize('model.pth')
-        os.remove('model.pth')
-
-        return model_size_bytes
+        return 0
 
     def save(self, path):
-        torch.save(self.pt_model.state_dict(), path)
+        #self.pt_model.save(path)
+        pass
 
