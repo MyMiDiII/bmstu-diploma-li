@@ -4,6 +4,7 @@
 # Data
 *.csv
 *.pbf
+*.dat
 
 # Research Data
 *models/
