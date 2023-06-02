@@ -7,5 +7,5 @@
 *.dat
 
 # Research Data
-*models/
+*res_models/
 *results/
