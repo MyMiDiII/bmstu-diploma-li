@@ -28,8 +28,8 @@ class Results:
     max_aes     : list[float] = field(default_factory=list)
 
     def add(self, result: Result):
-        self.keys_sizes.append(result.keys_size)
-        self.build_times.append(result.build_time)
+        self.keys_sizes.append(result.keys_size // (10**6))
+        self.build_times.append(result.build_time // (10**9))
         self.find_times.append(result.find_time)
         self.predict_times.append(result.predict_time)
         self.clarify_times.append(result.clarify_time)

@@ -18,5 +18,9 @@ def graph(subplot, x, y, label=None):
     ax.plot(x, y, "o-", label=label, lw=2)
 
     if label:
+        # время построения
+        # ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=2)
+
+        # время поиска FCNN2 (сравнение распределений)
         ax.legend()
 

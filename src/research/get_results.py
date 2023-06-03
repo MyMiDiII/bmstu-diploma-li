@@ -66,22 +66,19 @@ def save_into_file(result: Result, path: str):
 
 
 def research():
-    #sizes = [10 ** 6 * i for i in [2, 5, 8, 10]]
-    #sizes = [10 ** 7 * i for i in range(5, 6)]
-    #sizes = [10 ** 7 + 10 ** 6 * i for i in [5]]
-    #sizes = [10 ** 8]
-    sizes = [7 * 10**7]
+    #sizes = [i * 10**7 for i in [1,2,3,5,7,9]]
+    #sizes = [10**4, 5 * 10**5, 3 * 10**6]
+    sizes = [10**8]
 
     for distribution in distributions:
         print(f"DIST = {distribution}")
         sizes_keys = []
-        size = 7 * 10 ** 7
+        size = 1 * 10 ** 8
         keys = load_keys(f"data/csv/{distribution}/{distribution}{size}.csv",
                          size)
 
         for size in sizes:
-            #random.sample(keys, k=size)
-            sizes_keys.append(keys)
+            sizes_keys.append(np.random.choice(keys, size, replace=False))
 
         for model in models:
             for keys in sizes_keys:
