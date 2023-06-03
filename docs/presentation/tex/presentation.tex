@@ -1,10 +1,15 @@
-\documentclass[8pt]{bmstu-pr}
+\documentclass[8pt,table]{bmstu-pr}
 
 \begin{document}
 
 \prtitle{Метод построения поисковых индексов\\в реляционной базе данных\\на основе
 глубоких нейронных сетей}{Маслова Марина Дмитриевна}{ИУ7-83Б}{Оленев Антон
 Александрович}
+
+\begin{frame}
+    \frametitle{Актуальность}
+
+\end{frame}
 
 \begin{frame}
     \frametitle{Цель и задачи}
@@ -30,91 +35,171 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Важный слайд}
+    \fontsize{22pt}{22pt}\selectfont
+    \frametitle{Сравнение методов построения индексов}
 
-    %Индекс --- это некоторая структура, обеспечивающая быстрый поиск записей в
-    %базе данных.
-    %~\\
-    %~\\
-    %Индекс:
-    %\begin{itemize}
-    %    \item определяет соответствие ключа поиска конкретной записи с
-    %        положением этой записи;
-    %    \item строится в дополнение к существующим данным.
-    %\end{itemize}
-\end{frame}
+{
+\fontsize{20pt}{20pt}\selectfont
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}[Hc]{|p{4cm}|p{1.5cm}|p{3cm}|p{4cm}|p{2.5cm}|p{4cm}|}
+    %>{\columncolor{green}}
+    \hline
+    \multicolumn{2}{|c|}{\textbf{Метод}} &
+    \multicolumn{1}{c|}{\textbf{B-дерево}} &
+    \multicolumn{1}{c|}{\textbf{Хеш-таблица}} &
+    \multicolumn{1}{c|}{\parbox{2.5cm}{\centering\textbf{Фильтр Блума}}} &
+    \multicolumn{1}{c|}{\parbox{4cm}{\centering\textbf{Обученные индексы}}}\\
+    \hline
+    \multirow{2}{*}{\parbox{2cm}{Временная\\сложность}} &
+    поиска & O(log N) & O(1) / O(N) & O(k) & O(1) / O(N)\\
+    \cline{2-6}
+    & вставки & O(log N) & O(1) / O(N) & O(k) & (*)\\
+    \hline
+    \multicolumn{2}{|l|}{Память} & Высокая & Средняя & Низкая & Средняя\\
+    \hline
+    \multicolumn{2}{|l|}{Поиск в диапазоне} & + & - & - & + \\
+    \hline
+    \multicolumn{2}{|l|}{Поиск единичного ключа} & + & + & - & + \\
+    \hline
+    \multicolumn{2}{|l|}{Проверка существования} & + & + & + & + \\
+    \hline
+\end{longtable}
+}
 
-\begin{frame}
-    \frametitle{Важный слайд}
-
-    %\begin{itemize}
-    %    \item кластеризованные и некластеризованные;
-    %    \item плотные и разреженные;
-    %    \item одноуровневые и многоуровневые.
-    %\end{itemize}
-
-    %\hspace*{\fill}%
-    %\raisebox{-\height}{\imgs{dense}{0.8}}%
-    %\hfill
-    %\raisebox{-\height}{\imgs{sparse}{0.8}}%
-    %\hfill
-    %\raisebox{-\height}{\imgs{multilevel}{0.8}}%
-    %\hspace*{\fill}
-
-\end{frame}
-
-
-\begin{frame}
-    \frametitle{Важный слайд}
-
-    %\centering B-деревья
-    %\imgfs{bplustreecrop}{h!}{1}
-    %\centering B$^+$-деревья
-    %\imgfs{btreecrop}{h!}{1}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Важный слайд}
-    %\centering\imgs{blearnedcomp}{1.5}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Важный слайд}
-    %\centering\imgs{hashlearnedhash}{1.5}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Важный слайд}
-    %\imgfs{bloom}{h!}{1.5}
-    %\imgfs{learnedBloom}{h!}{1.5}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Важный слайд}
-    %\centering\imgs{rmi}{1.5}
-\end{frame}
-
-
-\begin{frame}
-    \frametitle{Важный слайд}
-
-    %\begin{itemize}
-    %    \item индексы для поиска в диапазоне;
-    %\end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Важный слайд}
+$(*)$ --- вставка в обученный индекс требует переобучения, сложность которого
+зависит от архитектуры используемой модели машинного обучения.
 
 \end{frame}
 
 \begin{frame}
+    \fontsize{22pt}{22pt}\selectfont
+    \frametitle{Постановка задачи}
+
+    \imgfs{idef0-A0}{h!}{1.4}
+    Ограничение: ключи --- целые уникальные числа.
+\end{frame}
+
+
+\begin{frame}
+    \fontsize{22pt}{22pt}\selectfont
+    \frametitle{Структура индекса}
+
+    \begin{minipage}{0.40\textwidth}
+        \imgfs{learnedstruct}{h!}{1.6}
+    \end{minipage} \hfill
+    \begin{minipage}{0.55\textwidth}
+        \begin{equation*}
+            p = F(K) \cdot N,
+        \end{equation*}
+        ~\\
+
+        где $p$ --- искомая позиция;
+
+        ~~~~$K$ --- ключ поиска;
+
+        ~~~~$F(K)$ --- функция распределения;
+
+        ~~~~$N$ --- количество ключей.
+    \end{minipage}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Функциональная схема построения индекса}
+    \imgfw{idef0-A1}{h!}{20cm}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Архитектура нейронной сети}
+    \imgfw{fcnn2}{h!}{10cm}
+    \imgfw{fcnn3}{h!}{10cm}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Функциональная схема поиска}
+    \imgfw{search-A1-big}{h!}{24cm}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Функциональная схема вставки}
+    \imgfw{insert-A1}{h!}{22cm}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Структура программного обеспечения}
+    \imgfw{sw-struct}{h!}{23cm}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Исследование времени построения}
+    %\begin{minipage}{0.45\textwidth}
+    %    \imgfs{res-build-distr}{h!}{1}
+    %\end{minipage}
+    \begin{minipage}{\textwidth}
+        \imgfs{res-build}{h!}{1.2}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Исследование времени поиска (распределения)}
+    \begin{minipage}{0.45\textwidth}
+        \imgfs{res-error-distrs}{h!}{0.7}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \imgfs{res-search-distrs}{h!}{0.7}
+    \end{minipage}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Исследование времени поиска (модели)}
+
+    \begin{minipage}{0.45\textwidth}
+        \imgfs{res-error-2vs3}{h!}{0.7}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \imgfs{res-search-2vs3}{h!}{0.7}
+    \end{minipage}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Исследование времени поиска (этапы)}
+    \begin{minipage}{0.45\textwidth}
+        \imgfs{res-search-steps}{h!}{0.7}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \imgfs{res-histogram}{h!}{0.7}
+    \end{minipage}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Исследование времени вставки}
+
+    \imgfs{res-insert-sqlite}{h!}{1}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Исследование памяти, занимаемой индексом}
+
+    \imgfs{res-memory-sqlite}{h!}{1}
+\end{frame}
+
+\begin{frame}
+    \fontsize{22pt}{22pt}\selectfont
     \frametitle{Заключение}
     В ходе данной работы:
     \begin{itemize}
-        \item
-        \item
-        \item
+        \item проанализированы известные методы построения индексов;
+        \item приведено описание построения индексов с помощью нейронных сетей;
+        \item разработан метод построения индексов в реляционной базе
+            данных на основе глубоких нейронных сетей;
+        \item разработано программное обеспечение, реализующее данный метод;
+        \item провестно исследование (по времени и памяти) операций поиска и
+            вставки с использованием индекса, построенного разработанным
+            методом, при различных объемах данных.
     \end{itemize}
     ~\\
 
@@ -122,12 +207,14 @@
 \end{frame}
 
 \begin{frame}
+    \fontsize{22pt}{22pt}\selectfont
     \frametitle{Дальнейшее развитие}
-    \begin{itemize}
-        \item важное 1;
-        \item важное 2;
-        \item важное 3;
-    \end{itemize}
+    \begin{enumerate}
+        \item Оптимизация алгоритма вставки с учетом распределения ключей.
+        \item Добавление возможности построения индекса по ключам других типов
+            данных.
+        \item  Построение многомерных обученных индексов.
+    \end{enumerate}
     ~\\
 \end{frame}
 
