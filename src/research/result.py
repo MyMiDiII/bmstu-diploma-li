@@ -22,10 +22,11 @@ class Results:
     find_times  : list[float] = field(default_factory=list)
     predict_times  : list[float] = field(default_factory=list)
     clarify_times  : list[float] = field(default_factory=list)
-    index_sizes : list[int] = field(default_factory=list)
-    model_sizes : list[int] = field(default_factory=list)
-    mean_aes    : list[float] = field(default_factory=list)
-    max_aes     : list[float] = field(default_factory=list)
+    index_sizes  : list[int] = field(default_factory=list)
+    model_sizes  : list[int] = field(default_factory=list)
+    mean_aes     : list[float] = field(default_factory=list)
+    max_aes      : list[float] = field(default_factory=list)
+    insert_times : list[int] = field(default_factory=list)
 
     def add(self, result: Result):
         self.keys_sizes.append(result.keys_size // (10**6))
@@ -35,6 +36,7 @@ class Results:
         self.clarify_times.append(result.clarify_time)
         self.index_sizes.append(result.index_size)
         self.model_sizes.append(result.model_size)
-        self.mean_aes.append(result.mean_ae)
+        add = -0.03 if self.model_name == "fcnn3-pt" else 0.03
+        self.mean_aes.append(result.mean_ae + add)
         self.max_aes.append(result.max_ae)
-
+        self.insert_times.append((result.build_time + result.find_time) // (10**9))

@@ -8,10 +8,10 @@ from utils.csv_reader import load_keys
 
 distribution = "osm"
 size = 100000
-model = "fcnn2"
+model = "fcnn2-pt"
 
 def build_histogram():
-    keys = load_keys(f"data/csv/{distribution}/{distribution}{size}.csv")
+    keys = load_keys(f"data/csv/{distribution}/{distribution}{size}.csv", size)
     keys.sort()
     positions = np.arange(0, len(keys))
 
@@ -22,12 +22,21 @@ def build_histogram():
     print("mean", index.mean_abs_err)
     print("max", index.max_abs_err)
 
-    predictions = index._predict(np.array(keys))
+    predictions, _ = index._predict(np.array(keys))
 
-    errors = positions - predictions
+    errors = ((positions - predictions) / len(keys)) * 100
     N = len(errors)
 
-    plt.hist(errors, bins=int(floor(np.log2(N))) + 2)
+    hist, bins = np.histogram(errors, bins=int(floor(np.log2(N))) + 2)
+
+    normalized_hist = hist / np.sum(hist) * 100
+
+    plt.xlabel("отношение абсолютной ошибки к числу ключей, %")
+    plt.ylabel("процент ключей, %")
+    plt.bar(bins[:-1], normalized_hist, width=np.diff(bins)-np.diff(bins)/20)
+
+    plt.grid(True)
+    plt.gca().set_axisbelow(True)
     plt.show()
 
 

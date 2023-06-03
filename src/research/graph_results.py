@@ -26,6 +26,10 @@ RESULTS_PATH = "results/"
 #DISTRIBUTION_NAME = "uniform"
 #DISTRIBUTION_PATH = RESULTS_PATH + DISTRIBUTION_NAME + "-"
 
+# время построения от распределений
+#DISTRIBUTIONS = ["uniform", "normal", "osm"]
+#MODELS = ["fcnn2-pt"]
+
 # время построения и поиска (при сравнении моделей)
 #DISTRIBUTIONS = ["osm"]
 #MODELS = ["fcnn2-pt", "fcnn3-pt"]
@@ -67,6 +71,7 @@ def plot_model(model_result: Results, distribution, subplots):
     model_sizes = model_result.model_sizes
     model_mean_aes = model_result.mean_aes
     model_max_aes = model_result.max_aes
+    insert_times = model_result.insert_times
 
     index_sizes = (np.array(index_sizes) - np.array(model_sizes)) * 2 + np.array(model_sizes)
 
@@ -80,12 +85,31 @@ def plot_model(model_result: Results, distribution, subplots):
     #graph(subplots[0], sizes, find_times, label=model)
 
     # время поиска по этапам
-    graph(subplots[0], sizes, find_times, label="поиск")
-    graph(subplots[0], sizes, pred_times, label=model+"предсказание")
-    graph(subplots[0], sizes, clar_times, label=model+"уточнение")
+    #graph(subplots[0], sizes, find_times, label="поиск")
+    #graph(subplots[0], sizes, pred_times, label=model+"предсказание")
+    #graph(subplots[0], sizes, clar_times, label=model+"уточнение")
+    #graph(subplots[0], sizes, [33810.893, 34174.073, 46409.604, 63999.267,
+    #                           49323.193, 44860.572, 40802.64, 49927.724,
+    #                           43546.585, 52984.766], label=model+"уточнение")
 
-    #graph(subplots[2], sizes, index_sizes, label=model+"-index")
-    #graph(subplots[2], sizes, model_sizes, label=model+"-model")
+    # время вставки
+    #graph(subplots[0], sizes, insert_times, label=model)
+    #graph(subplots[0], sizes, np.array([6450.102, 33057.749, 83873.912, 96660.027,
+    #                           116369.553, 126314.484, 131797.418, 135966.508,
+    #                           139088.006, 144662.577]) / (10**9),
+    #      label=model, twinx=True)
+
+
+    # память
+    #print(index_sizes)
+    #graph(subplots[0], sizes, index_sizes, label=model+"индекс")
+    #graph(subplots[0], sizes, model_sizes, label=model+"модель")
+    #ax = plt.subplot(*subplots[0])
+    #ax.text(93, 30000000, "6599", color="orange")
+    #graph(subplots[0], sizes, np.array([163840, 8671232, 46854144, 150663168,
+    #                                    306233344, 461594624, 772362240,
+    #                                    1083125760, 1393795072,
+    #                                    1549508608]), label="SQLite B-дерево")
 
     # абсолютная ошибка
     #graph(subplots[0], sizes, model_mean_aes, label=model)
@@ -106,18 +130,18 @@ def plot_all(parsed_results):
     #        (2, 2, 4)
     #        ]
     titles = [
-            "Время поиска",
             "",
+            "Время поиска",
             "Средняя абсолютная ошибка",
             "Время построения",
             "Память",
             ]
     xlabel = "количество ключей, млн. ед."
     ylabels = [
+            "память, байт",
+            "время (разработанный), с",
             "время, нс",
             "cредняя абсолютная ошибка, %",
-            "время, с",
-            "память, байт",
             ]
 
     for i, subplot in enumerate(subplots):

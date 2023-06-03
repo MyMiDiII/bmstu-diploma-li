@@ -29,7 +29,7 @@ class PTModel(AbstractModel):
         dataset = TensorDataset(input_tensor, output_tensor)
 
         print("DATALOADER")
-        batch_size = 32
+        batch_size = 1
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
         print("RUN")
