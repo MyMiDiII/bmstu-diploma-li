@@ -11,19 +11,26 @@ def config_subplot(subplot, grid=True, title=None, axis_names=(None, None)):
     if grid:
         ax.grid()
 
-def graph(subplot, x, y, label=None, twinx=False):
+def graph(subplot, x, y,
+          linetype="o-", markersize=8,
+          label=None,
+          twinx=False, ylabel=None):
     ax = plt.subplot(*subplot)
 
-    #ax.plot(x, y, label=label, lw=2)
     if not twinx:
-        #ax.tick_params(axis='y', labelcolor="tab:blue")
-        ax.plot(x, y, "o-", label=label, lw=2)
-    else:
+        ax.plot(x, y, linetype, label=label, lw=3, markersize=markersize)
+
+    hanles, labels = ax.get_legend_handles_labels()
+
+    if twinx:
         ax2 = ax.twinx()
-        ax2.set_ylabel("время (SQLite), с")
-        ax2.tick_params(axis='y', labelcolor="tab:red")
-        ax2.plot(x, y, "ro-", label=label, lw=2)
+        ax2.set_ylabel(ylabel)
+        #ax2.tick_params(axis='y', labelcolor="tab:red")
+        ax2.plot(x, y, linetype, label=label, lw=3, markersize=markersize)
+        ax2_h, ax2_l = ax2.get_legend_handles_labels()
+        hanles.extend(ax2_h)
+        labels.extend(ax2_l)
 
     if label:
-        ax.legend()
+        ax.legend(hanles, labels)
 

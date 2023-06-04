@@ -3,18 +3,20 @@ import sqlite3
 import csv
 import time
 import subprocess
-import matplotlib.pyplot as plt
+import pandas as pd
 
+CSV_PATH = "research/csv_res/"
 
 SIZES = []
 SIZES += [10 ** 4 * i for i in [1]]
 SIZES += [10 ** 5 * i for i in [5]]
 SIZES += [10 ** 6 * i for i in [3]]
 SIZES += [10 ** 7 * i for i in [1, 2, 3, 5, 7, 9]]
-SIZES += [10 ** 8 * i for i in range(1, 10)]
+SIZES += [10 ** 8 * i for i in [1]]
 print(SIZES)
 
 
+build_times = []
 no_index_times = []
 index_times = []
 insert_times = []
@@ -45,29 +47,39 @@ for size in SIZES:
         next(csv_reader, None)
         for i, row in enumerate(csv_reader):
             keys.append(int(row[0]))
-            if i == 9999:
+            if i == 9:
                 break
         print("keys", len(keys))
 
     print("TIME NO INDEX")
     find_time = 0
-    for key in keys:
-        start = time.process_time_ns()
+    for i, key in enumerate(keys):
+        print(f"{i}/{len(keys)}", end="\r")
+        start = time.time_ns()
         c.execute(f"SELECT * FROM maps WHERE key = {key}")
-        finish = time.process_time_ns()
+        c.fetchone()
+        finish = time.time_ns()
         find_time += (finish - start)
     find_time /= len(keys)
     no_index_times.append(find_time)
     print(no_index_times)
 
+    print("BUILD")
+    start = time.process_time_ns()
     c.execute('''CREATE INDEX IF NOT EXISTS my_index ON maps(key)''')
+    finish = time.process_time_ns()
+    build_times.append(finish - start)
+    print(build_times)
 
     print("TIME INDEX")
+    print()
     find_time = 0
-    for key in keys:
-        start = time.process_time_ns()
+    for i, key in enumerate(keys):
+        print(f"{i}/{len(keys)}", end="\r")
+        start = time.time_ns()
         c.execute(f"SELECT * FROM maps WHERE key = {key}")
-        finish = time.process_time_ns()
+        c.fetchone()
+        finish = time.time_ns()
         find_time += (finish - start)
     find_time /= len(keys)
     index_times.append(find_time)
@@ -96,3 +108,13 @@ for size in SIZES:
     conn.commit()
 
 conn.close()
+
+df = pd.DataFrame()
+df["size"] = SIZES
+df["build_times"] = build_times
+df["no_index_times"] = no_index_times
+df["index_times"] = index_times
+df["insert_times"] = insert_times
+df["index_sizes"] = index_sizes
+
+df.to_csv(CSV_PATH + "sqlite.csv", index=False)
