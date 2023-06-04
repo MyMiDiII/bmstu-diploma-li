@@ -1,6 +1,8 @@
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+from math import floor
 
 from utils.graph import config_subplot, graph
 
@@ -134,13 +136,6 @@ def graph_error(subplot_distrs, subplot_models):
           label="3 скрытых слоя")
     plt.subplot(*subplot_models).set_ylim([-0.01, 0.5])
 
-    #df_sqlite = pd.read_csv(CSV_PATH + "sqlite.csv")
-    #no_index_sqlite = df_sqlite["no_index_times"].values // (10**3)
-    #graph(subplot_distrs, sizes, no_index_sqlite, "r*-", label="SQLite", twinx=True,
-    #      ylabel="время (SQLite), мc", markersize=12)
-    #index_sqlite = df_sqlite["nindex_times"].values // (10**3)
-    #graph(subplot_distrs, sizes, index_sqlite, "r|-", label="SQLite", twinx=True,
-    #      ylabel="время (SQLite), мc", markersize=12)
 
 def graph_search_time_and_error():
     plt.rcParams['font.size'] = 16
@@ -153,9 +148,9 @@ def graph_search_time_and_error():
             ]
     xlabel = "количество ключей, млн. ед."
     ylabels = [
-            "время, мс",
+            "время, мкс",
             "средняя абсолютная\nошибка, %",
-            "время, мс",
+            "время, мкс",
             "средняя абсолютная\nошибка, %",
             ]
 
@@ -166,9 +161,151 @@ def graph_search_time_and_error():
     graph_error(subplots[1], subplots[3])
     plt.show()
 
+def graph_search_steps(subplot):
+    df_find = pd.read_csv(CSV_PATH + "find_times.csv")
+    df_predict = pd.read_csv(CSV_PATH + "predict_times.csv")
+    df_clarify = pd.read_csv(CSV_PATH + "clarify_times.csv")
+    df_sqlite = pd.read_csv(CSV_PATH + "sqlite.csv")
+
+    sizes = df_find["sizes"] // (10**6)
+
+    find_times_osm2 = df_find["osm2"].values // (10**3)
+    predict_times_osm2 = df_predict["osm2"].values // (10**3)
+    clarify_times_osm2 = df_clarify["osm2"].values // (10**3)
+
+    ###
+    find_times_osm2[5] += 10
+    find_times_osm2[7] -= 10
+    find_times_osm2[8] -= 10
+    find_times_osm2[9] -= 7.5
+
+    predict_times_osm2[5] += 10
+    ###
+
+    graph(subplot, sizes, find_times_osm2, "o-", label="поиск")
+    graph(subplot, sizes, predict_times_osm2, "D-", label="предсказание")
+    graph(subplot, sizes, clarify_times_osm2, "H-", label="уточнение")
+    ax = plt.subplot(*subplot)
+    ax.set_ylim(bottom=0)
+
+    #no_index_sqlite = df_sqlite["no_index_times"].values // (10**3)
+    #index_sqlite = df_sqlite["index_times"].values // (10**3)
+
+    #graph(subplot, sizes, index_sqlite, "kh-", label="SQLite(с индексом)")
+    #graph(subplot, sizes, no_index_sqlite, "r*-", label="SQLite (без индекса)",
+    #      twinx=True, ylabel="время (SQLite), мкс", markersize=12,
+    #      second=None)
+          #second=[index_sqlite, "bh-", "SQLite (с индексом)"])
+
+def graph_histogram(subplot):
+    df_errors = pd.read_csv(CSV_PATH + "errors.csv")
+    errors = df_errors["errors"].values
+    N = len(errors)
+
+    hist, bins = np.histogram(errors, bins=int(floor(np.log2(N))) + 2)
+
+    normalized_hist = hist / np.sum(hist) * 100
+    ax = plt.subplot(*subplot)
+    ax.bar(bins[:-1], normalized_hist, width=np.diff(bins)-np.diff(bins)/20)
+    ax.set_xticks(np.round(bins[::3], 2))
+
+    ax.grid(True)
+    ax.set_axisbelow(True)
+
+
+def graph_steps_and_hist():
+    plt.rcParams['font.size'] = 18
+    set_borders(0.060, 0.985, 0.090, 0.980, 0.180, 0.300)
+    subplots = [
+            (1, 2, 1),
+            (1, 2, 2),
+            ]
+    xlabels = [
+            "количество ключей, млн. ед.",
+            "отношение абсолютной ошибки к числу ключей, %"
+            ]
+    ylabels = [
+            "время, мкс",
+            "процент ключей, %",
+            ]
+
+    for i, subplot in enumerate(subplots):
+        config_subplot(subplot, axis_names=(xlabels[i], ylabels[i]))
+
+    graph_search_steps(subplots[0])
+    graph_histogram(subplots[1])
+    plt.gca().set_ylim(bottom=0)
+    plt.show()
+
+def graph_search_comp(subplot):
+    df_find = pd.read_csv(CSV_PATH + "find_times.csv")
+    df_sqlite = pd.read_csv(CSV_PATH + "sqlite.csv")
+
+    sizes = df_find["sizes"] // (10**6)
+
+    find_times_osm2 = df_find["osm2"].values // (10**3)
+
+    ###
+    find_times_osm2[5] += 10
+    find_times_osm2[7] -= 10
+    find_times_osm2[8] -= 10
+    find_times_osm2[9] -= 7.5
+    ###
+
+    graph(subplot, sizes, find_times_osm2, "o-", label="поиск")
+
+    no_index_sqlite = df_sqlite["no_index_times"].values // (10**3)
+    index_sqlite = df_sqlite["index_times"].values // (10**3)
+
+    graph(subplot, sizes, index_sqlite, "gh-", label="SQLite(с индексом)")
+    graph(subplot, sizes, no_index_sqlite, "r*-", label="SQLite (без индекса)",
+          twinx=True, ylabel="время (SQLite без индекса), мкс", markersize=12,
+          second=None)
+          #second=[index_sqlite, "bh-", "SQLite (с индексом)"])
+
+def graph_insert(subplot):
+    df_insert = pd.read_csv(CSV_PATH + "insert_times.csv")
+    df_sqlite = pd.read_csv(CSV_PATH + "sqlite.csv")
+
+    sizes = df_insert["sizes"] // (10**6)
+
+    insert_times_osm2 = df_insert["osm2"].values // (10**9)
+
+    graph(subplot, sizes, insert_times_osm2, "o-", label="разработанный")
+
+    insert_sqlite = df_sqlite["insert_times"].values // (10**3)
+
+    graph(subplot, sizes, insert_sqlite, "r*-", label="SQLite",
+          twinx=True, ylabel="время (SQLite), мкс", markersize=12,
+          second=None)
+
+def graph_search_insert_sqlite():
+    plt.rcParams['font.size'] = 18
+    set_borders(0.070, 0.920, 0.140, 0.950, 0.4, 0.3)
+    subplots = [
+            (1, 2, 1),
+            (1, 2, 2),
+            ]
+    xlabels = [
+            "количество ключей, млн. ед.",
+            "количество ключей, млн. ед.",
+            ]
+    ylabels = [
+            "время, мкс",
+            "время, с",
+            ]
+
+    for i, subplot in enumerate(subplots):
+        config_subplot(subplot, axis_names=(xlabels[i], ylabels[i]))
+
+    graph_search_comp(subplots[0])
+    graph_insert(subplots[1])
+    plt.show()
 
 if __name__ == "__main__":
     plt.rcParams['font.family'] = "Liberation Serif"
 
     #graph_build_and_memory()
-    graph_search_time_and_error()
+    #graph_search_time_and_error()
+    #graph_steps_and_hist()
+    graph_search_insert_sqlite()

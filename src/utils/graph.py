@@ -14,7 +14,7 @@ def config_subplot(subplot, grid=True, title=None, axis_names=(None, None)):
 def graph(subplot, x, y,
           linetype="o-", markersize=8,
           label=None,
-          twinx=False, ylabel=None):
+          twinx=False, ylabel=None, second=None):
     ax = plt.subplot(*subplot)
 
     if not twinx:
@@ -25,12 +25,16 @@ def graph(subplot, x, y,
     if twinx:
         ax2 = ax.twinx()
         ax2.set_ylabel(ylabel)
-        #ax2.tick_params(axis='y', labelcolor="tab:red")
         ax2.plot(x, y, linetype, label=label, lw=3, markersize=markersize)
+
+        if second:
+            ax2.plot(x, second[0], second[1], label=second[2], lw=3,
+                     markersize=markersize)
+
         ax2_h, ax2_l = ax2.get_legend_handles_labels()
         hanles.extend(ax2_h)
         labels.extend(ax2_l)
 
     if label:
-        ax.legend(hanles, labels)
+        ax.legend(hanles, labels, loc=4)
 

@@ -1,10 +1,13 @@
 from math import floor
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from indexes.builder import LindexBuilder
 from utils.csv_reader import load_keys
+
+CSV_PATH = "research/csv_res/"
 
 distribution = "osm"
 size = 100000
@@ -27,12 +30,16 @@ def build_histogram():
     errors = ((positions - predictions) / len(keys)) * 100
     N = len(errors)
 
+    df = pd.DataFrame()
+    df["errors"] = errors
+    df.to_csv(CSV_PATH + "errors.csv")
+
     hist, bins = np.histogram(errors, bins=int(floor(np.log2(N))) + 2)
 
     normalized_hist = hist / np.sum(hist) * 100
 
-    plt.xlabel("отношение абсолютной ошибки к числу ключей, %")
-    plt.ylabel("процент ключей, %")
+    plt.xlabel("")
+    plt.ylabel("")
     plt.bar(bins[:-1], normalized_hist, width=np.diff(bins)-np.diff(bins)/20)
 
     plt.grid(True)
