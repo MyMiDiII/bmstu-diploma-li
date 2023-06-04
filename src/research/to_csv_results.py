@@ -2,6 +2,8 @@ import os
 import pickle
 import re
 
+import pandas as pd
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -19,13 +21,17 @@ SIZES += [10 ** 5 * i for i in [5]]
 SIZES += [10 ** 6 * i for i in [3]]
 SIZES += [10 ** 7 * i for i in [1, 2, 3, 5, 7, 9]]
 #SIZES += [10 ** 7 * i for i in [2, 5]]
-SIZES += [10 ** 8 * i for i in range(1, 10)]
+SIZES += [10 ** 8 * i for i in [1]]
 
 RESULTS_PATH = "results/"
 #DISTRIBUTIONS = ["uniform", "normal", "osm"]
 #DISTRIBUTION_NAME = "uniform"
 #DISTRIBUTION_PATH = RESULTS_PATH + DISTRIBUTION_NAME + "-"
 
+DISTRIBUTIONS = ["uniform", "normal", "osm"]
+MODELS = ["fcnn2-pt", "fcnn3-pt"]
+
+CSV_PATH = "research/csv_res/"
 # время построения от распределений
 #DISTRIBUTIONS = ["uniform", "normal", "osm"]
 #MODELS = ["fcnn2-pt"]
@@ -39,8 +45,8 @@ RESULTS_PATH = "results/"
 #MODELS = ["fcnn2-pt"]
 
 # время поиска по этапам
-DISTRIBUTIONS = ["osm"]
-MODELS = ["fcnn2-pt"]
+#DISTRIBUTIONS = ["osm"]
+#MODELS = ["fcnn2-pt"]
 
 def plot_model(model_result: Results, distribution, subplots):
     #model = distribution + "-" + model_result.model_name
@@ -148,11 +154,33 @@ def plot_all(parsed_results):
         config_subplot(subplot, title=titles[i], axis_names=(xlabel,
                                                              ylabels[i]))
 
+    dataframes = {
+            "build_times" : pd.DataFrame(),
+            "find_times" : pd.DataFrame(),
+            "predict_times" : pd.DataFrame(),
+            "clarify_times" : pd.DataFrame(),
+            "index_sizes" : pd.DataFrame(),
+            "model_sizes" : pd.DataFrame(),
+            "mean_aes" : pd.DataFrame(),
+            "max_aes" : pd.DataFrame(),
+            "insert_times" : pd.DataFrame(),
+            }
+
+    for name, df in dataframes.items():
+        df["sizes"] = SIZES
+
     for distribution, distribution_results in parsed_results.items():
         for model_result in distribution_results:
-            plot_model(model_result, distribution, subplots)
+            column_name = distribution + model_result.model_name[4]
 
-    plt.show()
+            for name, df in dataframes.items():
+                df[column_name] = getattr(model_result, name)
+            #plot_model(model_result, distribution, subplots)
+
+    for name, df in dataframes.items():
+        df.to_csv(CSV_PATH + name + ".csv", index=False)
+
+    #plt.show()
 
 def parse_results(results):
 
