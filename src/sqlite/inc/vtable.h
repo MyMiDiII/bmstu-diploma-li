@@ -10,6 +10,7 @@ typedef struct lindex_vtab {
     sqlite3_vtab base;
     sqlite3_stmt *stmt;
     PyObject *lindex;
+    sqlite3 *db;
 } lindex_vtab;
 
 int lindexCreate(sqlite3 *db,

@@ -18,5 +18,9 @@ int lindexFilter(sqlite3_vtab_cursor *pVtabCursor,
                  sqlite3_value **argv);
 int lindexBestIndex(sqlite3_vtab *tab,
                     sqlite3_index_info *pIdxInfo);
+int lindexUpdate(sqlite3_vtab *pVTab,
+                 int argc,
+                 sqlite3_value **argv,
+                 sqlite_int64 *pRowid);
 
 #endif

@@ -27,7 +27,7 @@ static sqlite3_module lindexModule = {
   /* xEof        */ lindexEof,
   /* xColumn     */ lindexColumn,
   /* xRowid      */ lindexRowid,
-  /* xUpdate     */ 0,
+  /* xUpdate     */ lindexUpdate,
   /* xBegin      */ 0,
   /* xSync       */ 0,
   /* xCommit     */ 0,

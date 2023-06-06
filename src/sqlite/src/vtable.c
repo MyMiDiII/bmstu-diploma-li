@@ -75,6 +75,7 @@ int initPythonIndex(sqlite3 *db,
     }
 
     vTab->lindex = lindex;
+    vTab->db = db;
 
     Py_DECREF(keys);
     Py_DECREF(rows);
