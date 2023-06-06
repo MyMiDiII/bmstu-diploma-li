@@ -4,8 +4,8 @@ texReport : build move
 
 build : report.tex
 	pdflatex -shell-escape report.tex
-	biber report
-	biber report
+	#biber report
+	#biber report
 	pdflatex -shell-escape report.tex
 	pdflatex -shell-escape report.tex
 
