@@ -126,13 +126,16 @@
 \begin{longtable}[Hc]{|p{4cm}|p{1.5cm}|p{3cm}|p{4cm}|p{2.5cm}|p{4cm}|}
     %>{\columncolor{green}}
     \hline
-    \multicolumn{2}{|c|}{\textbf{Метод}} &
-    \multicolumn{1}{c|}{\textbf{B-дерево}} &
+    \multicolumn{2}{|c|}{\multirow{2}{*}{\textbf{Метод}}} &
+    \multicolumn{3}{|c|}{\textbf{Классические индексы}} &
+    \multicolumn{1}{c|}{\multirow{2}{*}{\parbox{4cm}{
+        \centering\textbf{Обученные индексы}}}}\\
+    \cline{3-5}
+    \multicolumn{2}{|c|}{} & \multicolumn{1}{c|}{\textbf{B-дерево}} &
     \multicolumn{1}{c|}{\textbf{Хеш-таблица}} &
-    \multicolumn{1}{c|}{\parbox{2.5cm}{\centering\textbf{Фильтр Блума}}} &
-    \multicolumn{1}{c|}{\parbox{4cm}{\centering\textbf{Обученные индексы}}}\\
+    \multicolumn{1}{c|}{\parbox{2.5cm}{\centering\textbf{Фильтр Блума}}} & \\
     \hline
-    \multirow{2}{*}{\parbox{2cm}{Временная\\сложность}} &
+    \multirow{2}{*}{\parbox{3cm}{Временная\\сложность}} &
     поиска & O(log N) & O(1) / O(N) & O(k) & O(1) / O(N)\\
     \cline{2-6}
     & вставки & O(log N) & O(1) / O(N) & O(k) & (*)\\
