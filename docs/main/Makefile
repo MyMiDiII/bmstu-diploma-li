@@ -1,6 +1,6 @@
 .PHONY : report main open clean
 
-report : main open
+report : main
 
 main : ./tex/MakefileTex
 	cd ./tex && make -f MakefileTex
