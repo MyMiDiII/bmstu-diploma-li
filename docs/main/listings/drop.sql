@@ -1,1 +1,1 @@
-DROP TABLE <имя_таблицы>;
+DROP TABLE <table_name>;

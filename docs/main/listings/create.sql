@@ -1,1 +1,1 @@
-CREATE VIRTUAL TABLE <имя_таблицы> USING <имя_модуля>(arg1, ...);
+CREATE VIRTUAL TABLE <table_name> USING <module_name>(arg1, ...);

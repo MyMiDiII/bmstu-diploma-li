@@ -3,8 +3,7 @@ int lindexCreate(sqlite3 *db,
                  const int argc,
                  const char *const *argv,
                  sqlite3_vtab **ppVtab,
-                 char **errMsg)
-{
+                 char **errMsg) {
     lindex_vtab *vtab = sqlite3_malloc(sizeof(lindex_vtab));
 
     if (!vtab)

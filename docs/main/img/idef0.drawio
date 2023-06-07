@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-06-07T17:09:55.764Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.124 YaBrowser/22.9.3.894 Yowser/2.5 Safari/537.36" etag="KzdrNug0VjT_rz9LY-Od" version="21.3.7" type="device" pages="7">
+<mxfile host="app.diagrams.net" modified="2023-06-07T20:38:47.604Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.124 YaBrowser/22.9.3.894 Yowser/2.5 Safari/537.36" etag="MpGxf7XJtXKMUz__uQ64" version="21.3.7" type="device" pages="7">
   <diagram name="A0" id="yFXzycM-z0YioWYdbV4p">
     <mxGraphModel dx="850" dy="477" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -702,16 +702,16 @@
     </mxGraphModel>
   </diagram>
   <diagram id="V5R5bRR4fFie7nhPhEWU" name="Страница 6">
-    <mxGraphModel dx="844" dy="477" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="993" dy="561" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="hTDf5nkWKmeCR9dpcv33-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;entryPerimeter=0;fontFamily=Times New Roman;fontSize=18;" parent="1" source="hTDf5nkWKmeCR9dpcv33-5" target="hTDf5nkWKmeCR9dpcv33-7" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="hTDf5nkWKmeCR9dpcv33-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;fontFamily=Times New Roman;fontSize=18;" parent="1" target="hTDf5nkWKmeCR9dpcv33-5" edge="1">
+        <mxCell id="hTDf5nkWKmeCR9dpcv33-3" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;fontFamily=Times New Roman;fontSize=18;" parent="1" target="hTDf5nkWKmeCR9dpcv33-5" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="199.8461538461538" y="20" as="sourcePoint" />
+            <mxPoint x="200" y="40" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="hTDf5nkWKmeCR9dpcv33-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;fontFamily=Times New Roman;fontSize=18;jumpStyle=none;" parent="1" target="hTDf5nkWKmeCR9dpcv33-5" edge="1">
@@ -750,7 +750,7 @@
           <mxGeometry x="520" y="280" width="160" height="80" as="geometry" />
         </mxCell>
         <mxCell id="hTDf5nkWKmeCR9dpcv33-13" value="Правила&lt;br style=&quot;font-size: 18px;&quot;&gt;нормализации" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Times New Roman;fontSize=18;labelBackgroundColor=none;" parent="1" vertex="1" connectable="0">
-          <mxGeometry x="260" y="50" as="geometry" />
+          <mxGeometry x="260" y="70" as="geometry" />
         </mxCell>
         <mxCell id="hTDf5nkWKmeCR9dpcv33-14" value="Построенный&lt;br style=&quot;font-size: 18px;&quot;&gt;индекс" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Times New Roman;fontSize=18;labelBackgroundColor=none;fontStyle=1" parent="1" vertex="1" connectable="0">
           <mxGeometry x="340" y="410" as="geometry">
