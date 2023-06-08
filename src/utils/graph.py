@@ -18,17 +18,17 @@ def graph(subplot, x, y,
     ax = plt.subplot(*subplot)
 
     if not twinx:
-        ax.plot(x, y, linetype, label=label, lw=3, markersize=markersize)
+        ax.plot(x, y, linetype, label=label, lw=2, markersize=markersize)
 
     hanles, labels = ax.get_legend_handles_labels()
 
     if twinx:
         ax2 = ax.twinx()
         ax2.set_ylabel(ylabel)
-        ax2.plot(x, y, linetype, label=label, lw=3, markersize=markersize)
+        ax2.plot(x, y, linetype, label=label, lw=2, markersize=markersize)
 
         if second:
-            ax2.plot(x, second[0], second[1], label=second[2], lw=3,
+            ax2.plot(x, second[0], second[1], label=second[2], lw=2,
                      markersize=markersize)
 
         ax2_h, ax2_l = ax2.get_legend_handles_labels()
@@ -36,5 +36,5 @@ def graph(subplot, x, y,
         labels.extend(ax2_l)
 
     if label:
-        ax.legend(hanles, labels, loc=4)
+        ax.legend(hanles, labels)
 

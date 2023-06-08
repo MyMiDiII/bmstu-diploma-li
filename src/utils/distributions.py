@@ -9,9 +9,10 @@ from utils.graph import graph, config_subplot
 from utils.csv_reader import load_keys
 
 def main():
-    uniform_keys = np.sort(load_keys("data/csv/uniform/uniform100000.csv"))
-    normal_keys  = np.sort(load_keys("data/csv/normal/normal100000.csv"))
-    osm_keys     = np.sort(load_keys("data/csv/osm/osm100000.csv"))
+    uniform_keys = np.sort(load_keys("data/csv/uniform/uniform100000.csv",
+                           100000))
+    normal_keys  = np.sort(load_keys("data/csv/normal/normal100000.csv", 100000))
+    osm_keys     = np.sort(load_keys("osm100000.csv", 4903))
 
     distribution_keys = {
             "Равномерное распределение" : uniform_keys,
@@ -21,7 +22,7 @@ def main():
 
     font = {'family' : 'Liberation Serif',
             'weight' : 'normal',
-            'size'   : 20}
+            'size'   : 14}
 
     matplotlib.rc('font', **font)
 
@@ -35,13 +36,14 @@ def main():
 
         config_subplot(positions[i],
                        title=distribution,
-                       axis_names=("нормализованный ключ key", "F(key)"))
+                       axis_names=("нормализованный ключ K",
+                       "значение функции\nраспределения F(K)"))
 
-        graph(positions[i], keys, cdf)
+        graph(positions[i], keys, cdf, linetype="-")
 
 
     plt.subplots_adjust(top=0.945,  bottom=0.085,
-                        left=0.08,  right=0.955,
+                        left=0.11,  right=0.955,
                         hspace=0.3, wspace=1.0)
     plt.show()
 

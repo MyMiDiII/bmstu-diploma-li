@@ -39,21 +39,21 @@ class Lindex:
         self.N = len(keys)
         size = self.N
         print("KEYS")
-        self.keys = np.memmap(f"keys{self.N}.dat", dtype='int64',
-                              mode='w+', shape=(size, ))
-        np.copyto(self.keys, np.array(keys)[sort_indexes])
-        #self.keys = np.array(keys)[sort_indexes]
+        #self.keys = np.memmap(f"keys{self.N}.dat", dtype='int64',
+        #                      mode='w+', shape=(size, ))
+        #np.copyto(self.keys, np.array(keys)[sort_indexes])
+        self.keys = np.array(keys)[sort_indexes]
         print("NORM")
-        self.norm_keys = np.memmap(f"norm_keys{self.N}.dat", dtype='float32',
-                              mode='w+', shape=(size, ))
-        np.copyto(self.norm_keys, self._normalize(self.keys))
-        #self.norm_keys = self._normalize(self.keys)
-        #self.data = np.array(data)[sort_indexes]
+        #self.norm_keys = np.memmap(f"norm_keys{self.N}.dat", dtype='float32',
+        #                      mode='w+', shape=(size, ))
+        #np.copyto(self.norm_keys, self._normalize(self.keys))
+        self.norm_keys = self._normalize(self.keys)
+        self.data = np.array(data)[sort_indexes]
         print("POS")
-        self.positions = np.memmap(f"pos{self.N}.dat", dtype='float32',
-                              mode='w+', shape=(size, ))
-        np.copyto(self.positions, np.arange(0, self.N) / (self.N - 1))
-        #self.positions = np.arange(0, self.N) / (self.N - 1)
+        #self.positions = np.memmap(f"pos{self.N}.dat", dtype='float32',
+        #                      mode='w+', shape=(size, ))
+        #np.copyto(self.positions, np.arange(0, self.N) / (self.N - 1))
+        self.positions = np.arange(0, self.N) / (self.N - 1)
 
     #@profile
     def _true_train(self):
@@ -127,10 +127,11 @@ class Lindex:
 
         #print("DATA", self.data[positions])
 
-        #return self.data[positions], predict_time, clarify_time
-        return positions, predict_time, clarify_time
+        return self.data[positions]#, predict_time, clarify_time
+        #return positions#, predict_time, clarify_time
 
     def insert(self, key, data):
+        print("insert")
         index = np.searchsorted(self.keys, key)
         self.keys = np.insert(self.keys, index, key)
         self.data = np.insert(self.data, index, data)
@@ -197,7 +198,7 @@ class Lindex:
 
         keys_range = np.array([np.nan if x is None else x for x in keys_range])
 
-        positions_limits = self._predict(keys_range)
+        positions_limits, _ = self._predict(keys_range)
         positions_limits = positions_limits.astype(float)
         positions_limits[np.isnan(keys_range)] = np.nan
         #print(positions_limits)

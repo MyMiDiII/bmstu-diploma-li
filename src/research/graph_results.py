@@ -26,9 +26,9 @@ def graph_memory(subplot):
     model_sizes = df_model_sizes["osm2"].values
     index_sizes = (index_sizes - model_sizes) * 2 + model_sizes
     graph(subplot, sizes, index_sizes, "o-", label="индекс")
-    graph(subplot, sizes, model_sizes, "D-", label="модель")
+    graph(subplot, sizes, model_sizes, "g^-", label="модель")
     ax = plt.subplot(*subplot)
-    ax.text(90, 30000000, "6599", color="orange")
+    ax.text(90, 30000000, "6599", color="green")
 
     size_sqlite = df_sqlite["index_sizes"].values
     graph(subplot, sizes, size_sqlite, "r*-", label="SQLite", markersize=12)
@@ -95,8 +95,8 @@ def graph_search(subplot_distrs, subplot_models):
           label="равномерное распределение")
     graph(subplot_distrs, sizes, times_normal2, "D-",
           label="нормальное распределение")
-    graph(subplot_distrs, sizes, times_osm2, "H-",
-          label="реальные данные (OpenStreetMaps)")
+    graph(subplot_distrs, sizes, times_osm2, "*-",
+          label="OpenStreetMap", markersize=12)
 
     times_osm3 = df_search_times["osm3"].values // (10**3)
 
@@ -105,9 +105,9 @@ def graph_search(subplot_distrs, subplot_models):
     times_osm3[9] -= 7.5
     ###
 
-    graph(subplot_models, sizes, times_osm2, "o-",
-          label="2 скрытых слоя")
-    graph(subplot_models, sizes, times_osm3, "D-",
+    graph(subplot_models, sizes, times_osm2, "g*-",
+          label="2 скрытых слоя", markersize=12)
+    graph(subplot_models, sizes, times_osm3, "rs-",
           label="3 скрытых слоя")
 
 
@@ -124,15 +124,15 @@ def graph_error(subplot_distrs, subplot_models):
           label="равномерное распределение")
     graph(subplot_distrs, sizes[1:], errors_normal2[1:], "D-",
           label="нормальное распределение")
-    graph(subplot_distrs, sizes[1:], errors_osm2[1:], "H-",
-          label="реальные данные (OpenStreetMaps)")
+    graph(subplot_distrs, sizes[1:], errors_osm2[1:], "*-",
+          label="OpenStreetMap", markersize=12)
 
     errors_osm3 = df_search_errors["osm3"].values - 0.03
     errors_osm3[7] -= 0.02
 
-    graph(subplot_models, sizes, errors_osm2, "o-",
-          label="2 скрытых слоя")
-    graph(subplot_models, sizes, errors_osm3, "D-",
+    graph(subplot_models, sizes, errors_osm2, "g*-",
+          label="2 скрытых слоя", markersize=12)
+    graph(subplot_models, sizes, errors_osm3, "rs-",
           label="3 скрытых слоя")
     plt.subplot(*subplot_models).set_ylim([-0.01, 0.5])
 
@@ -184,7 +184,8 @@ def graph_search_steps(subplot):
 
     graph(subplot, sizes, find_times_osm2, "o-", label="поиск")
     graph(subplot, sizes, predict_times_osm2, "D-", label="предсказание")
-    graph(subplot, sizes, clarify_times_osm2, "H-", label="уточнение")
+    graph(subplot, sizes, clarify_times_osm2, "*-", label="уточнение",
+          markersize=12)
     ax = plt.subplot(*subplot)
     ax.set_ylim(bottom=0)
 
@@ -252,12 +253,12 @@ def graph_search_comp(subplot):
     find_times_osm2[9] -= 7.5
     ###
 
-    graph(subplot, sizes, find_times_osm2, "o-", label="поиск")
+    graph(subplot, sizes, find_times_osm2, "o-", label="разработанный (поиск)")
 
     no_index_sqlite = df_sqlite["no_index_times"].values // (10**3)
     index_sqlite = df_sqlite["index_times"].values // (10**3)
 
-    graph(subplot, sizes, index_sqlite, "gh-", label="SQLite(с индексом)")
+    graph(subplot, sizes, index_sqlite, "gD-", label="SQLite (с индексом)")
     graph(subplot, sizes, no_index_sqlite, "r*-", label="SQLite (без индекса)",
           twinx=True, ylabel="время (SQLite без индекса), мкс", markersize=12,
           second=None)
@@ -271,12 +272,12 @@ def graph_insert(subplot):
 
     insert_times_osm2 = df_insert["osm2"].values // (10**9)
 
-    graph(subplot, sizes, insert_times_osm2, "o-", label="разработанный")
+    graph(subplot, sizes, insert_times_osm2, "o-", label="разработанный (вставка)")
 
     insert_sqlite = df_sqlite["insert_times"].values // (10**3)
 
-    graph(subplot, sizes, insert_sqlite, "r*-", label="SQLite",
-          twinx=True, ylabel="время (SQLite), мкс", markersize=12,
+    graph(subplot, sizes, insert_sqlite, "gD-", label="SQLite (с индексом)",
+          twinx=True, ylabel="время (SQLite), мкс", markersize=8,
           second=None)
 
 def graph_search_insert_sqlite():
@@ -306,6 +307,6 @@ if __name__ == "__main__":
     plt.rcParams['font.family'] = "Liberation Serif"
 
     #graph_build_and_memory()
-    #graph_search_time_and_error()
+    graph_search_time_and_error()
     #graph_steps_and_hist()
-    graph_search_insert_sqlite()
+    #graph_search_insert_sqlite()
