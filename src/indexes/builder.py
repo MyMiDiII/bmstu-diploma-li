@@ -42,7 +42,6 @@ class LindexBuilder:
 
             case "fcnn2-pt":
                 from indexes.models.pt_model import PTModel
-                print("PTModel")
                 self.model = PTModel(2)
 
             case "fcnn3-pt":
@@ -51,7 +50,6 @@ class LindexBuilder:
 
 
     def build(self):
-        print("BUILD RUN")
         return Lindex(self.model)
 
 # draft

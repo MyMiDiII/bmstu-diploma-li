@@ -33,23 +33,19 @@ class Lindex:
 
     #@profile
     def _init_for_train(self, keys: list[int], data: list[any]):
-        print("SORT")
         sort_indexes = np.argsort(keys)
 
         self.N = len(keys)
         size = self.N
-        print("KEYS")
         #self.keys = np.memmap(f"keys{self.N}.dat", dtype='int64',
         #                      mode='w+', shape=(size, ))
         #np.copyto(self.keys, np.array(keys)[sort_indexes])
         self.keys = np.array(keys)[sort_indexes]
-        print("NORM")
         #self.norm_keys = np.memmap(f"norm_keys{self.N}.dat", dtype='float32',
         #                      mode='w+', shape=(size, ))
         #np.copyto(self.norm_keys, self._normalize(self.keys))
         self.norm_keys = self._normalize(self.keys)
         self.data = np.array(data)[sort_indexes]
-        print("POS")
         #self.positions = np.memmap(f"pos{self.N}.dat", dtype='float32',
         #                      mode='w+', shape=(size, ))
         #np.copyto(self.positions, np.arange(0, self.N) / (self.N - 1))
@@ -120,18 +116,13 @@ class Lindex:
             return None
 
         keys = np.array(keys)
-        #print("SELF KEYS", self.keys)
         positions, predict_time = self._predict(keys)
-        #print("POS NOT CLARIFY", positions)
         positions, clarify_time = self._clarify(keys, positions)
 
-        #print("DATA", self.data[positions])
 
         return self.data[positions]#, predict_time, clarify_time
-        #return positions#, predict_time, clarify_time
 
     def insert(self, key, data):
-        print("insert")
         index = np.searchsorted(self.keys, key)
         self.keys = np.insert(self.keys, index, key)
         self.data = np.insert(self.data, index, data)

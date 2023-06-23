@@ -10,15 +10,12 @@ int initPythonIndex(sqlite3 *db,
                     const long column_index,
                     lindex_vtab *vTab)
 {
-    puts("CREATE");
     char* query = sqlite3_mprintf("SELECT ROWID, * FROM %s", tableName);
 
-    puts("CREATE");
     sqlite3_stmt* stmt;
     int rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     sqlite3_free(query);
 
-    puts("CREATE");
     if (rc)
         return rc;
 
@@ -28,13 +25,10 @@ int initPythonIndex(sqlite3 *db,
         PyErr_Print();
         PyErr_Clear();
     }
-    printf("%p\n", (void *)builderModule);
     
     PyObject* builderClassName = PyObject_GetAttrString(builderModule, "LindexBuilder");
-    printf("%p\n", (void *)builderClassName);
     PyObject* pyModelName = PyTuple_Pack(1, PyUnicode_FromString(modelName));
     PyObject* builder = PyObject_CallObject(builderClassName, pyModelName);
-    printf("%p\n", (void *)builder);
 
     PyObject* lindex = PyObject_CallMethod(builder, "build", NULL);
     PyObject* keys = PyList_New(0);
@@ -51,11 +45,9 @@ int initPythonIndex(sqlite3 *db,
 
         i++;
     }
-    puts("ok");
 
     if (i)
     {
-        puts("train");
         PyObject* train = PyUnicode_FromString("train");
         if (!train)
         {
@@ -110,7 +102,6 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 
     strcat(schema, end);
 
-    printf("\n");
     return 0;
 }
 
@@ -136,14 +127,12 @@ int lindexCreate(sqlite3 *db,
 
     char *sql_template = "SELECT sql FROM sqlite_master WHERE type='table' AND name='%s';";
     char *schemaQuery = sqlite3_mprintf(sql_template, rTableName);
-    printf("%s\n", schemaQuery);
 
     char* messaggeError;
     char vSqlQuery[10000];
     strcpy(vSqlQuery, vTableName);
     int rc = sqlite3_exec(db, schemaQuery, callback, vSqlQuery, &messaggeError);
     char *resVSqlQuery = sqlite3_mprintf("%s;", vSqlQuery);
-    printf("%s\n", resVSqlQuery);
 
     rc = sqlite3_declare_vtab(db, resVSqlQuery);
 
@@ -157,7 +146,6 @@ int lindexCreate(sqlite3 *db,
 
     char* result_query = sqlite3_mprintf("SELECT * FROM %s WHERE ROWID = ?;", rTableName);
     sqlite3_prepare_v2(db, result_query, -1, &vtab->stmt, NULL);
-    //sqlite3_finalize(vtab->stmt);
 
     return rc;
 }
@@ -169,21 +157,12 @@ int lindexConnect(sqlite3 *db,
                   sqlite3_vtab **ppVtab,
                   char **pzErr)
 {
-    //puts("CONNECT");
-    for (int i = 0; i < argc; ++i)
-    {
-        ////printf("%d %s\n", i, argv[i]);
-    }
-
     return lindexCreate(db, pAux, argc, argv, ppVtab, pzErr);
 }
 
 int lindexDisconnect(sqlite3_vtab *pVtab)
 {
-    puts("DISCONNECT");
     lindex_vtab *p = (lindex_vtab*)pVtab;
-    //puts("free");
     sqlite3_free(p);
-    //puts("ok");
     return SQLITE_OK;
 }

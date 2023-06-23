@@ -15,24 +15,20 @@ class PTModel(AbstractModel):
         )
 
     def build(self):
-        print("PT BUILD")
         self.loss_function = torch.nn.MSELoss()
         self.optimizer = torch.optim.SGD(self.pt_model.parameters(), lr=1e-2)
 
     def train(self, keys, positions):
-        print("INIT")
         self.N = len(keys)
         input_tensor = torch.from_numpy(keys).unsqueeze(1).float()
         output_tensor = torch.from_numpy(positions).unsqueeze(1).float()
 
-        print("DATASET")
         dataset = TensorDataset(input_tensor, output_tensor)
 
-        print("DATALOADER")
         batch_size = 1
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-        print("RUN")
+        epoch_loss = 0.0
         num_epochs = 30
         for epoch in range(num_epochs):
             mean_ae = 0
@@ -47,13 +43,14 @@ class PTModel(AbstractModel):
                 self.optimizer.step()
 
                 epoch_loss += loss.item()
-                print(f"{i}/{len(dataloader)} loss: {epoch_loss / (i + 1):.3e}", end='\r')
+                #print(f"{i}/{len(dataloader)} loss: {epoch_loss / (i + 1):.3e}", end='\r')
 
             epoch_loss /= len(dataset)
-            print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.3e}")
 
             if epoch_loss < 1e-5:
                 break
+
+        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.3e}")
 
         random_indices = torch.randint(low=0, high=self.N, size=(1000,))
         input_tensor = input_tensor[random_indices]
@@ -68,11 +65,6 @@ class PTModel(AbstractModel):
 
         self.max_absolute_error = np.max(absolute_errors)
         self.mean_absolute_error = np.ceil(np.mean(absolute_errors)).astype(int)
-
-        print()
-        print("mean", self.mean_absolute_error)
-        print("max_ae", self.max_absolute_error)
-
 
     def get_max_abs_err(self):
         return self.max_absolute_error
