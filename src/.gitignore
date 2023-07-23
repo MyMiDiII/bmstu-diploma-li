@@ -1,1 +1,11 @@
+# Python
 *__pycache__/
+
+# Data
+*.csv
+*.pbf
+*.dat
+
+# Research Data
+*res_models/
+*results/

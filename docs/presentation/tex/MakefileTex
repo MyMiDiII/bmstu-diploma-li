@@ -1,0 +1,18 @@
+.PHONY : texReport build move clean
+
+texReport : build move
+
+build : presentation.tex
+	pdflatex -shell-escape presentation.tex
+	#pdflatex -shell-escape presentation.tex
+	#pdflatex -shell-escape presentation.tex
+
+move : presentation.pdf
+	-mkdir ../pdf           
+	mv presentation.pdf ../pdf/ 
+	-mkdir ../out        
+	-mv *.aux *.log *.bbl *.blg *.dvi *.out *.toc *.bcf *.xml *.nav *.snm ../out/ 
+
+clean :
+	-rm -rf ../out/ ../pdf/presentation.pdf
+	-rm *.aux *.log *.bbl *.blg *.dvi *.out *.toc *.bcf *.pdf *.xml

@@ -1,0 +1,20 @@
+.PHONY : texReport build move clean
+
+texReport : build move
+
+build : report.tex
+	pdflatex -shell-escape report.tex
+	biber report
+	biber report
+	pdflatex -shell-escape report.tex
+	pdflatex -shell-escape report.tex
+
+move : report.pdf
+	-mkdir ../pdf           
+	mv report.pdf ../pdf/ 
+	-mkdir ../out        
+	-mv *.aux *.log *.bbl *.blg *.dvi *.out *.toc *.bcf *.xml ../out/ 
+
+clean :
+	-rm -rf ../out/ ../pdf/report.pdf
+	-rm *.aux *.log *.bbl *.blg *.dvi *.out *.toc *.bcf *.pdf *.xml

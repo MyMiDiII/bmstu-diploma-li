@@ -1,20 +1,17 @@
-from indexes.models.rbf import RBN, InitCentersRandom
-from indexes.models.fcnn import FCNN
-
-from indexes.lindex import Lindex
-
 from time import process_time_ns
 
 from prettytable import PrettyTable
 
-import tensorflow as tf
 import numpy as np
 
 from utils.distributions import graph
+from indexes.builder import LindexBuilder
+from indexes.models.rbf import RBN, InitCentersRandom
+from indexes.models.fcnn import FCNN
 
 config = {
-        "keys":   "osm",
-        "models": ["rbf", "fcnn3", "fcnn2"]
+        "keys":   "normal",
+        "models": ["fcnn2"]
         }
 
 size = 1000
@@ -25,41 +22,25 @@ else:
     sparce_ids = None
 
 keys_variants = {
-        "uniform": np.random.uniform(0, size, size).astype(int),
+        "uniform": np.random.uniform(0, size * 10, size).astype(int),
         "normal": np.random.normal(0.5, 0.16, size),
         "exp": np.random.exponential(2, size),
         "osm": sparce_ids
-        }
-
-layer_neurons_num = 32
-b = 1 / np.sqrt(layer_neurons_num)
-a = -b
-
-rbf_initializer = InitCentersRandom(np.array([keys_variants[config["keys"]]]).T)
-rbf_initializer = None
-initializer = tf.keras.initializers.RandomUniform(a, b)
-
-models_variants = {
-        "rbf": RBN(rbf_initializer),
-        "fcnn3": FCNN([(layer_neurons_num, "relu", initializer)] * 3),
-        "fcnn2": FCNN([(layer_neurons_num, "relu", initializer)] * 2)
         }
 
 def main():
     keys_distribution = config["keys"]
     models_names = config["models"]
 
-    keys = keys_variants[keys_distribution]
+    keys = [6, 4, 5, 1, 2, 3, -1, 0, -10]
     size = len(keys)
-    values = np.random.randint(0, 100, size)
+    values = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     results = dict()
     prediced_positions = dict()
 
     for model_name in models_names:
-        model = models_variants[model_name]
-
-        index = Lindex(model)
+        index = LindexBuilder(model_name).build()
 
         start = process_time_ns()
         index.train(keys, values)
@@ -69,25 +50,24 @@ def main():
 
         keys.sort()
         start = process_time_ns()
-        ppos = index.predict(keys)
+        ppos, _ = index.find(keys)
         predict_time = process_time_ns() - start
 
-        ppos = ppos.reshape(-1)
-        min_err = np.max(ppos - true_positions)
-        max_err = np.max(true_positions - ppos)
-        errors = (max(min_err, 0), max(max_err, 0))
-        span = sum(errors)
-        half_span = np.max(np.maximum(min_err, max_err))
-
-        results[model_name] = (training_time, predict_time, span, half_span)
+        max_abs_err = index.metrics.max_absolute_error
+        mean_abs_err = index.metrics.mean_absolute_error
+        results[model_name] = (training_time, predict_time, max_abs_err,
+                               mean_abs_err)
         prediced_positions[model_name] = ppos
 
-    results_table = PrettyTable(["model", "train", "predict", "span", "half_span"])
+    results_table = PrettyTable(["model", "train", "predict", "max_ae", "mean_ae"])
 
     for key, value in results.items():
         results_table.add_row([key] + list(value))
 
     print(results_table)
+
+    print(true_positions)
+    print(prediced_positions.values())
 
     graph(keys, true_positions, prediced_positions.values(), prediced_positions.keys())
 
